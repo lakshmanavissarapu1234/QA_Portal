@@ -462,39 +462,35 @@ function ManualPage() {
 ========================================================= */
 
 function AutomationPage() {
+  const [source, setSource] = useState("Jira");
 
-  const [source, setSource] =
-    useState("Jira");
+  const [framework, setFramework] = useState("Playwright");
+  const [language, setLanguage] = useState("TypeScript");
 
-  const [framework, setFramework] =
-    useState("Playwright");
+  const [pom, setPom] = useState(true);
+  const [spec, setSpec] = useState(true);
+  const [json, setJson] = useState(true);
 
-  const [language, setLanguage] =
-    useState("TypeScript");
+  // Jira
+  const [jiraId, setJiraId] = useState("");
+  const [jiraFetched, setJiraFetched] = useState(false);
 
-  const [pom, setPom] =
-    useState(true);
+  // Test Case details
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [acceptanceCriteria, setAcceptanceCriteria] = useState("");
 
-  const [spec, setSpec] =
-    useState(true);
+  // Document
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
 
-  const [json, setJson] =
-    useState(true);
+  const [generated, setGenerated] = useState(false);
 
-  const [requirement, setRequirement] =
-    useState("");
-
-  const [generated, setGenerated] =
-    useState(false);
-
-  /* FRAMEWORKS */
   const frameworks = [
     "Playwright",
     "Selenium",
     "Cypress",
   ];
 
-  /* LANGUAGES */
   const languages = [
     "TypeScript",
     "JavaScript",
@@ -502,10 +498,81 @@ function AutomationPage() {
     "Java",
   ];
 
-  const generateAutomation = () => {
+  // ---------------------------------------------
+  // FETCH JIRA USER STORY
+  // ---------------------------------------------
+  const fetchJiraStory = () => {
+    if (!jiraId.trim()) {
+      alert("Please enter a Jira Issue ID.");
+      return;
+    }
 
-    if (!requirement.trim()) {
-      alert("Please enter a requirement for automation.");
+    // Temporary UI mock.
+    // Real Jira API will be connected through backend later.
+    setTitle(`Sample user story for ${jiraId.trim()}`);
+
+    setDescription(
+      "The user should be able to complete the requested functionality successfully."
+    );
+
+    setAcceptanceCriteria(
+      "1. The user can complete the required action.\n" +
+      "2. Valid input is accepted.\n" +
+      "3. Appropriate validation is displayed for invalid input."
+    );
+
+    setJiraFetched(true);
+    setGenerated(false);
+  };
+
+  // ---------------------------------------------
+  // CHANGE SOURCE
+  // ---------------------------------------------
+  const handleSourceChange = (nextSource: string) => {
+    setSource(nextSource);
+    setGenerated(false);
+
+    // Clear source-specific data
+    setJiraFetched(false);
+    setJiraId("");
+    setTitle("");
+    setDescription("");
+    setAcceptanceCriteria("");
+    setDocumentFile(null);
+  };
+
+  // ---------------------------------------------
+  // GENERATE AUTOMATION
+  // ---------------------------------------------
+  const generateAutomation = () => {
+    // Jira validation
+    if (source === "Jira" && !jiraFetched) {
+      alert("Please fetch the Jira user story first.");
+      return;
+    }
+
+    // Manual validation
+    if (
+      source === "Manual" &&
+      (!title.trim() ||
+        !description.trim() ||
+        !acceptanceCriteria.trim())
+    ) {
+      alert(
+        "Please enter Title, Description and Acceptance Criteria."
+      );
+      return;
+    }
+
+    // Document validation
+    if (source === "Document" && !documentFile) {
+      alert("Please upload a requirement document.");
+      return;
+    }
+
+    // Output validation
+    if (!pom && !spec && !json) {
+      alert("Please select at least one output file.");
       return;
     }
 
@@ -528,9 +595,10 @@ function AutomationPage() {
 
       </div>
 
+
       {/* =================================================
           AUTOMATION OPTIONS
-          Framework + Language + Output
+          Source + Framework + Language + Output
           ALL IN ONE ROW
       ================================================= */}
       <div className="automation-options-card">
@@ -543,24 +611,30 @@ function AutomationPage() {
           <div className="segment-group">
 
             <button
-              className={`segment-button ${source === "Jira" ? "active" : ""}`}
-              onClick={() => setSource("Jira")}
+              className={`segment-button ${
+                source === "Jira" ? "active" : ""
+              }`}
+              onClick={() => handleSourceChange("Jira")}
             >
               <ClipboardList size={17} />
               Jira
             </button>
 
             <button
-              className={`segment-button ${source === "Manual" ? "active" : ""}`}
-              onClick={() => setSource("Manual")}
+              className={`segment-button ${
+                source === "Manual" ? "active" : ""
+              }`}
+              onClick={() => handleSourceChange("Manual")}
             >
               <FileText size={17} />
               Manual
             </button>
 
             <button
-              className={`segment-button ${source === "Document" ? "active" : ""}`}
-              onClick={() => setSource("Document")}
+              className={`segment-button ${
+                source === "Document" ? "active" : ""
+              }`}
+              onClick={() => handleSourceChange("Document")}
             >
               <FileText size={17} />
               Document
@@ -569,6 +643,7 @@ function AutomationPage() {
           </div>
 
         </div>
+
 
         {/* FRAMEWORK */}
         <div className="automation-option">
@@ -599,6 +674,7 @@ function AutomationPage() {
 
         </div>
 
+
         {/* LANGUAGE */}
         <div className="automation-option">
 
@@ -628,8 +704,9 @@ function AutomationPage() {
 
         </div>
 
+
         {/* OUTPUT */}
-        <div className="automation-option automation-output">
+        <div className="automation-option">
 
           <label>Output File</label>
 
@@ -649,6 +726,7 @@ function AutomationPage() {
 
             </label>
 
+
             <label className="checkbox-option">
 
               <input
@@ -662,6 +740,7 @@ function AutomationPage() {
               <span>Spec File</span>
 
             </label>
+
 
             <label className="checkbox-option">
 
@@ -683,26 +762,238 @@ function AutomationPage() {
 
       </div>
 
-      {/* =========================
-          AUTOMATION REQUIREMENT
-      ========================= */}
-      <div className="requirement-section">
 
-        <label>Automation Requirement</label>
+      {/* =================================================
+          SOURCE-SPECIFIC CONTENT
+      ================================================= */}
+      <div className="source-input-area">
 
-        <textarea
-          value={requirement}
-          onChange={(e) =>
-            setRequirement(e.target.value)
-          }
-          placeholder="Enter the requirement for automation..."
-        />
+
+        {/* =============================================
+            JIRA
+        ============================================= */}
+        {source === "Jira" && (
+
+          <div className="source-panel">
+
+            <div className="source-panel-title">
+              Jira Test Case
+            </div>
+
+
+            <div className="jira-fetch-row">
+
+              <div className="source-field jira-id-field">
+
+                <label>Jira Issue ID</label>
+
+                <input
+                  type="text"
+                  value={jiraId}
+                  onChange={(e) =>
+                    setJiraId(e.target.value)
+                  }
+                  placeholder="e.g. PROJ-123"
+                />
+
+              </div>
+
+
+              <button
+                className="fetch-button"
+                onClick={fetchJiraStory}
+              >
+                Fetch
+              </button>
+
+            </div>
+
+
+            {/* SHOW STORY DETAILS AFTER FETCH */}
+            {jiraFetched && (
+
+              <div className="story-details">
+
+                <div className="source-field">
+
+                  <label>Title</label>
+
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) =>
+                      setTitle(e.target.value)
+                    }
+                  />
+
+                </div>
+
+
+                <div className="source-field">
+
+                  <label>Description</label>
+
+                  <textarea
+                    value={description}
+                    onChange={(e) =>
+                      setDescription(e.target.value)
+                    }
+                  />
+
+                </div>
+
+
+                <div className="source-field">
+
+                  <label>Acceptance Criteria</label>
+
+                  <textarea
+                    value={acceptanceCriteria}
+                    onChange={(e) =>
+                      setAcceptanceCriteria(e.target.value)
+                    }
+                  />
+
+                </div>
+
+              </div>
+
+            )}
+
+          </div>
+
+        )}
+
+
+        {/* =============================================
+            MANUAL
+        ============================================= */}
+        {source === "Manual" && (
+
+          <div className="source-panel">
+
+            <div className="source-panel-title">
+              User Story
+            </div>
+
+
+            <div className="story-details">
+
+              <div className="source-field">
+
+                <label>Title</label>
+
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) =>
+                    setTitle(e.target.value)
+                  }
+                  placeholder="Enter the user story title..."
+                />
+
+              </div>
+
+
+              <div className="source-field">
+
+                <label>Description</label>
+
+                <textarea
+                  value={description}
+                  onChange={(e) =>
+                    setDescription(e.target.value)
+                  }
+                  placeholder="Enter the user story description..."
+                />
+
+              </div>
+
+
+              <div className="source-field">
+
+                <label>Acceptance Criteria</label>
+
+                <textarea
+                  value={acceptanceCriteria}
+                  onChange={(e) =>
+                    setAcceptanceCriteria(e.target.value)
+                  }
+                  placeholder="Enter the acceptance criteria..."
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+        )}
+
+
+        {/* =============================================
+            DOCUMENT
+        ============================================= */}
+        {source === "Document" && (
+
+          <div className="source-panel">
+
+            <div className="source-panel-title">
+              Requirement Document
+            </div>
+
+
+            <label className="document-upload-box">
+
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                onChange={(e) => {
+                  setDocumentFile(
+                    e.target.files?.[0] ?? null
+                  );
+
+                  setGenerated(false);
+                }}
+              />
+
+
+              <FileText
+                size={34}
+                className="upload-icon"
+              />
+
+
+              <strong>
+                {documentFile
+                  ? documentFile.name
+                  : "Upload Requirement Document"}
+              </strong>
+
+
+              <span>
+                {documentFile
+                  ? "File selected successfully"
+                  : "Drag & drop your document here or click to browse"}
+              </span>
+
+
+              <small>
+                PDF, DOC, DOCX or TXT
+              </small>
+
+            </label>
+
+          </div>
+
+        )}
 
       </div>
 
-      {/* =========================
+
+      {/* =================================================
           GENERATE AUTOMATION
-      ========================= */}
+      ================================================= */}
       <button
         className="generate-button"
         onClick={generateAutomation}
@@ -714,12 +1005,14 @@ function AutomationPage() {
 
       </button>
 
-      {/* =========================
+
+      {/* =================================================
           GENERATED AUTOMATION
-      ========================= */}
+      ================================================= */}
       <div className="generated-section">
 
         <label>Generated Automation</label>
+
 
         <div className="output-box automation-output-box">
 
@@ -728,16 +1021,26 @@ function AutomationPage() {
             size={42}
           />
 
+
           {!generated ? (
+
             <>
-              <h3>No automation generated yet</h3>
+
+              <h3>
+                No automation generated yet
+              </h3>
 
               <p>
-                Enter a requirement and click Generate Automation.
+                Complete the selected source details and
+                click Generate Automation.
               </p>
+
             </>
+
           ) : (
+
             <>
+
               <h3>
                 Automation generated successfully
               </h3>
@@ -749,13 +1052,13 @@ function AutomationPage() {
               <p className="generated-details">
 
                 {pom ? "POM " : ""}
-
                 {spec ? "Spec " : ""}
-
                 {json ? "JSON" : ""}
 
               </p>
+
             </>
+
           )}
 
         </div>
