@@ -391,7 +391,7 @@ function ManualPage() {
 
         {source === "Document" && (
           <div className="source-panel">
-            <div className="source-panel-title">Requirement Document</div>
+            <div className="source-panel-title">User Story Document</div>
 
             <label className="document-upload-box">
               <input
@@ -475,10 +475,10 @@ function AutomationPage() {
   const [jiraId, setJiraId] = useState("");
   const [jiraFetched, setJiraFetched] = useState(false);
 
-  // Test Case details
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [acceptanceCriteria, setAcceptanceCriteria] = useState("");
+  // Automation Test Case details
+  const [testCaseTitle, setTestCaseTitle] = useState("");
+  const [testSteps, setTestSteps] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState("");
 
   // Document
   const [documentFile, setDocumentFile] = useState<File | null>(null);
@@ -499,9 +499,9 @@ function AutomationPage() {
   ];
 
   // ---------------------------------------------
-  // FETCH JIRA USER STORY
+  // FETCH JIRA TEST CASE
   // ---------------------------------------------
-  const fetchJiraStory = () => {
+  const fetchJiraTestCase = () => {
     if (!jiraId.trim()) {
       alert("Please enter a Jira Issue ID.");
       return;
@@ -509,16 +509,16 @@ function AutomationPage() {
 
     // Temporary UI mock.
     // Real Jira API will be connected through backend later.
-    setTitle(`Sample user story for ${jiraId.trim()}`);
+    setTestCaseTitle(`Sample test case for ${jiraId.trim()}`);
 
-    setDescription(
-      "The user should be able to complete the requested functionality successfully."
+    setTestSteps(
+      "1. Open the application.\n" +
+      "2. Enter the required information.\n" +
+      "3. Click Submit."
     );
 
-    setAcceptanceCriteria(
-      "1. The user can complete the required action.\n" +
-      "2. Valid input is accepted.\n" +
-      "3. Appropriate validation is displayed for invalid input."
+    setAdditionalInfo(
+      "Verify that the expected result is displayed successfully."
     );
 
     setJiraFetched(true);
@@ -535,42 +535,38 @@ function AutomationPage() {
     // Clear source-specific data
     setJiraFetched(false);
     setJiraId("");
-    setTitle("");
-    setDescription("");
-    setAcceptanceCriteria("");
+    setTestCaseTitle("");
+    setTestSteps("");
+    setAdditionalInfo("");
     setDocumentFile(null);
   };
 
   // ---------------------------------------------
-  // GENERATE AUTOMATION
+  // GENERATE AUTOMATION CODE
   // ---------------------------------------------
   const generateAutomation = () => {
-    // Jira validation
     if (source === "Jira" && !jiraFetched) {
-      alert("Please fetch the Jira user story first.");
+      alert("Please fetch the Jira test case first.");
       return;
     }
 
-    // Manual validation
     if (
       source === "Manual" &&
-      (!title.trim() ||
-        !description.trim() ||
-        !acceptanceCriteria.trim())
+      (!testCaseTitle.trim() ||
+        !testSteps.trim() ||
+        !additionalInfo.trim())
     ) {
       alert(
-        "Please enter Title, Description and Acceptance Criteria."
+        "Please enter Test Case Title, Test Steps and Additional Info."
       );
       return;
     }
 
-    // Document validation
     if (source === "Document" && !documentFile) {
-      alert("Please upload a requirement document.");
+      alert("Please upload a test case document.");
       return;
     }
 
-    // Output validation
     if (!pom && !spec && !json) {
       alert("Please select at least one output file.");
       return;
@@ -582,34 +578,21 @@ function AutomationPage() {
   return (
     <section className="page">
 
-      {/* =========================
-          HEADER
-      ========================= */}
       <div className="page-header">
-
         <h1>Automation</h1>
-
         <p>
-          Generate automation test scripts from your requirements.
+          Generate automation test scripts from your test cases.
         </p>
-
       </div>
 
-
-      {/* =================================================
-          AUTOMATION OPTIONS
-          Source + Framework + Language + Output
-          ALL IN ONE ROW
-      ================================================= */}
+      {/* AUTOMATION OPTIONS */}
       <div className="automation-options-card">
 
         {/* SOURCE */}
         <div className="automation-option">
-
           <label>Source</label>
 
           <div className="segment-group">
-
             <button
               className={`segment-button ${
                 source === "Jira" ? "active" : ""
@@ -639,309 +622,210 @@ function AutomationPage() {
               <FileText size={17} />
               Document
             </button>
-
           </div>
-
         </div>
-
 
         {/* FRAMEWORK */}
         <div className="automation-option">
-
           <label>Framework</label>
 
           <div className="select-wrapper">
-
             <select
               value={framework}
-              onChange={(e) =>
-                setFramework(e.target.value)
-              }
+              onChange={(e) => setFramework(e.target.value)}
             >
-
               {frameworks.map((item) => (
-                <option
-                  key={item}
-                  value={item}
-                >
+                <option key={item} value={item}>
                   {item}
                 </option>
               ))}
-
             </select>
-
           </div>
-
         </div>
-
 
         {/* LANGUAGE */}
         <div className="automation-option">
-
           <label>Language</label>
 
           <div className="select-wrapper">
-
             <select
               value={language}
-              onChange={(e) =>
-                setLanguage(e.target.value)
-              }
+              onChange={(e) => setLanguage(e.target.value)}
             >
-
               {languages.map((item) => (
-                <option
-                  key={item}
-                  value={item}
-                >
+                <option key={item} value={item}>
                   {item}
                 </option>
               ))}
-
             </select>
-
           </div>
-
         </div>
-
 
         {/* OUTPUT */}
         <div className="automation-option">
-
           <label>Output File</label>
 
           <div className="automation-checkboxes">
-
             <label className="checkbox-option">
-
               <input
                 type="checkbox"
                 checked={pom}
-                onChange={(e) =>
-                  setPom(e.target.checked)
-                }
+                onChange={(e) => setPom(e.target.checked)}
               />
-
               <span>POM File</span>
-
             </label>
 
-
             <label className="checkbox-option">
-
               <input
                 type="checkbox"
                 checked={spec}
-                onChange={(e) =>
-                  setSpec(e.target.checked)
-                }
+                onChange={(e) => setSpec(e.target.checked)}
               />
-
               <span>Spec File</span>
-
             </label>
 
-
             <label className="checkbox-option">
-
               <input
                 type="checkbox"
                 checked={json}
-                onChange={(e) =>
-                  setJson(e.target.checked)
-                }
+                onChange={(e) => setJson(e.target.checked)}
               />
-
               <span>JSON File</span>
-
             </label>
-
           </div>
-
         </div>
-
       </div>
 
-
-      {/* =================================================
-          SOURCE-SPECIFIC CONTENT
-      ================================================= */}
+      {/* SOURCE-SPECIFIC CONTENT */}
       <div className="source-input-area">
 
-
-        {/* =============================================
-            JIRA
-        ============================================= */}
+        {/* JIRA */}
         {source === "Jira" && (
-
           <div className="source-panel">
-
             <div className="source-panel-title">
               Jira Test Case
             </div>
 
-
             <div className="jira-fetch-row">
-
               <div className="source-field jira-id-field">
-
                 <label>Jira Issue ID</label>
 
                 <input
                   type="text"
                   value={jiraId}
-                  onChange={(e) =>
-                    setJiraId(e.target.value)
-                  }
+                  onChange={(e) => setJiraId(e.target.value)}
                   placeholder="e.g. PROJ-123"
                 />
-
               </div>
-
 
               <button
                 className="fetch-button"
-                onClick={fetchJiraStory}
+                onClick={fetchJiraTestCase}
               >
                 Fetch
               </button>
-
             </div>
 
-
-            {/* SHOW STORY DETAILS AFTER FETCH */}
             {jiraFetched && (
-
               <div className="story-details">
 
                 <div className="source-field">
-
-                  <label>Title</label>
+                  <label>Test Case Title</label>
 
                   <input
                     type="text"
-                    value={title}
+                    value={testCaseTitle}
                     onChange={(e) =>
-                      setTitle(e.target.value)
+                      setTestCaseTitle(e.target.value)
                     }
                   />
-
                 </div>
 
-
                 <div className="source-field">
-
-                  <label>Description</label>
+                  <label>Test Steps</label>
 
                   <textarea
-                    value={description}
+                    value={testSteps}
                     onChange={(e) =>
-                      setDescription(e.target.value)
+                      setTestSteps(e.target.value)
                     }
                   />
-
                 </div>
 
-
                 <div className="source-field">
-
-                  <label>Acceptance Criteria</label>
+                  <label>Additional Info</label>
 
                   <textarea
-                    value={acceptanceCriteria}
+                    value={additionalInfo}
                     onChange={(e) =>
-                      setAcceptanceCriteria(e.target.value)
+                      setAdditionalInfo(e.target.value)
                     }
                   />
-
                 </div>
 
               </div>
-
             )}
-
           </div>
-
         )}
 
-
-        {/* =============================================
-            MANUAL
-        ============================================= */}
+        {/* MANUAL */}
         {source === "Manual" && (
-
           <div className="source-panel">
 
             <div className="source-panel-title">
-              User Story
+              Test Case
             </div>
-
 
             <div className="story-details">
 
               <div className="source-field">
-
-                <label>Title</label>
+                <label>Test Case Title</label>
 
                 <input
                   type="text"
-                  value={title}
+                  value={testCaseTitle}
                   onChange={(e) =>
-                    setTitle(e.target.value)
+                    setTestCaseTitle(e.target.value)
                   }
-                  placeholder="Enter the user story title..."
+                  placeholder="Enter the test case title..."
                 />
-
               </div>
 
-
               <div className="source-field">
-
-                <label>Description</label>
+                <label>Test Steps</label>
 
                 <textarea
-                  value={description}
+                  value={testSteps}
                   onChange={(e) =>
-                    setDescription(e.target.value)
+                    setTestSteps(e.target.value)
                   }
-                  placeholder="Enter the user story description..."
+                  placeholder="Enter the test steps..."
                 />
-
               </div>
 
-
               <div className="source-field">
-
-                <label>Acceptance Criteria</label>
+                <label>Additional Info</label>
 
                 <textarea
-                  value={acceptanceCriteria}
+                  value={additionalInfo}
                   onChange={(e) =>
-                    setAcceptanceCriteria(e.target.value)
+                    setAdditionalInfo(e.target.value)
                   }
-                  placeholder="Enter the acceptance criteria..."
+                  placeholder="Enter any additional information..."
                 />
-
               </div>
 
             </div>
-
           </div>
-
         )}
 
-
-        {/* =============================================
-            DOCUMENT
-        ============================================= */}
+        {/* DOCUMENT */}
         {source === "Document" && (
-
           <div className="source-panel">
 
             <div className="source-panel-title">
-              Requirement Document
+              Test Case Document
             </div>
-
 
             <label className="document-upload-box">
 
@@ -952,24 +836,20 @@ function AutomationPage() {
                   setDocumentFile(
                     e.target.files?.[0] ?? null
                   );
-
                   setGenerated(false);
                 }}
               />
-
 
               <FileText
                 size={34}
                 className="upload-icon"
               />
 
-
               <strong>
                 {documentFile
                   ? documentFile.name
-                  : "Upload Requirement Document"}
+                  : "Upload Test Case Document"}
               </strong>
-
 
               <span>
                 {documentFile
@@ -977,42 +857,29 @@ function AutomationPage() {
                   : "Drag & drop your document here or click to browse"}
               </span>
 
-
               <small>
                 PDF, DOC, DOCX or TXT
               </small>
 
             </label>
-
           </div>
-
         )}
 
       </div>
 
-
-      {/* =================================================
-          GENERATE AUTOMATION
-      ================================================= */}
+      {/* GENERATE AUTOMATION CODE */}
       <button
         className="generate-button"
         onClick={generateAutomation}
       >
-
         <Code2 size={21} />
-
-        Generate Automation
-
+        Generate Automation Code
       </button>
 
-
-      {/* =================================================
-          GENERATED AUTOMATION
-      ================================================= */}
+      {/* GENERATED AUTOMATION CODE */}
       <div className="generated-section">
 
-        <label>Generated Automation</label>
-
+        <label>Generated Automation Code</label>
 
         <div className="output-box automation-output-box">
 
@@ -1021,28 +888,21 @@ function AutomationPage() {
             size={42}
           />
 
-
           {!generated ? (
-
             <>
-
               <h3>
-                No automation generated yet
+                No automation code generated yet
               </h3>
 
               <p>
-                Complete the selected source details and
-                click Generate Automation.
+                Complete the selected test case details and
+                click Generate Automation Code.
               </p>
-
             </>
-
           ) : (
-
             <>
-
               <h3>
-                Automation generated successfully
+                Automation code generated successfully
               </h3>
 
               <p>
@@ -1050,19 +910,14 @@ function AutomationPage() {
               </p>
 
               <p className="generated-details">
-
                 {pom ? "POM " : ""}
                 {spec ? "Spec " : ""}
                 {json ? "JSON" : ""}
-
               </p>
-
             </>
-
           )}
 
         </div>
-
       </div>
 
     </section>
