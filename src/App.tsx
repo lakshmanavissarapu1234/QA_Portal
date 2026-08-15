@@ -820,6 +820,12 @@ function ManualPage() {
   const [generating, setGenerating] = useState(false);
   const [generationError, setGenerationError] = useState("");
 
+  const [expandedGeneratedCases, setExpandedGeneratedCases] =
+    useState<string[]>([]);
+
+  const [selectedGeneratedCases, setSelectedGeneratedCases] =
+    useState<string[]>([]);
+
   const fetchJiraStory = () => {
     if (!jiraId.trim()) {
       alert("Please enter a Jira Issue ID.");
@@ -894,6 +900,59 @@ function ManualPage() {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const generatedTestCases = [
+    {
+      id: "TC001",
+      title: "Verify valid user login",
+      type: "Positive",
+      steps: [
+        "Open the login page.",
+        "Enter a valid username.",
+        "Enter a valid password.",
+        "Click the Login button.",
+      ],
+      expected: "User should be logged in successfully.",
+    },
+    {
+      id: "TC002",
+      title: "Verify login with invalid credentials",
+      type: "Negative",
+      steps: [
+        "Open the login page.",
+        "Enter an invalid username or password.",
+        "Click the Login button.",
+      ],
+      expected: "An appropriate validation message should be displayed.",
+    },
+    {
+      id: "TC003",
+      title: "Verify login with empty credentials",
+      type: "Edge",
+      steps: [
+        "Open the login page.",
+        "Leave username and password empty.",
+        "Click the Login button.",
+      ],
+      expected: "Required field validation should be displayed.",
+    },
+  ];
+
+  const toggleGeneratedCase = (testCaseId: string) => {
+    setExpandedGeneratedCases((current) =>
+      current.includes(testCaseId)
+        ? current.filter((id) => id !== testCaseId)
+        : [...current, testCaseId]
+    );
+  };
+
+  const toggleGeneratedCaseSelection = (testCaseId: string) => {
+    setSelectedGeneratedCases((current) =>
+      current.includes(testCaseId)
+        ? current.filter((id) => id !== testCaseId)
+        : [...current, testCaseId]
+    );
   };
 
   return (
@@ -1136,35 +1195,114 @@ function ManualPage() {
         {generating ? "Generating test cases..." : "Generate Test Cases"}
       </button>
 
-      {/* GENERATED - ALWAYS BELOW GENERATE BUTTON */}
+      {/* GENERATED TEST CASES */}
       <div className="generated-section">
         <label>Generated Test Cases</label>
 
-        <div className="output-box">
-          <FileText className="document-icon" size={40} />
+        {!generated && !generationError ? (
+          <div className="output-box">
+            <FileText className="document-icon" size={40} />
+            <h3>No test cases generated yet</h3>
+            <p>
+              Complete the selected source details and click Generate Test Cases.
+            </p>
+          </div>
+        ) : generationError ? (
+          <div className="output-box">
+            <FileText className="document-icon" size={40} />
+            <h3 className="generation-error-title">
+              Unable to generate test cases
+            </h3>
+            <p className="generation-error-message">
+              {generationError}
+            </p>
+          </div>
+        ) : (
+          <div className="generated-testcases-panel">
+            <div className="generated-testcases-header">
+              <div>
+                <h3>Test cases generated successfully</h3>
+                <span>{selectedGeneratedCases.length} selected</span>
+              </div>
+              <span className="generated-format-label">
+                {outputFormat}
+              </span>
+            </div>
 
-          {generationError ? (
-            <>
-              <h3 className="generation-error-title">Unable to generate test cases</h3>
-              <p className="generation-error-message">{generationError}</p>
-            </>
-          ) : !generated ? (
-            <>
-              <h3>No test cases generated yet</h3>
-              <p>
-                Complete the selected source details and click Generate Test Cases.
-              </p>
-            </>
-          ) : (
-            <>
-              <h3>Test cases generated successfully</h3>
-              <p>
-                {outputFormat} test cases will appear here.
-              </p>
-            </>
-          )}
-        </div>
+            <div className="generated-testcases-list">
+              {generatedTestCases.map((testCase) => {
+                const expanded =
+                  expandedGeneratedCases.includes(testCase.id);
+                const selected =
+                  selectedGeneratedCases.includes(testCase.id);
+
+                return (
+                  <div
+                    className="generated-testcase-item"
+                    key={testCase.id}
+                  >
+                    <div className="generated-testcase-row">
+                      <button
+                        className="generated-expand-button"
+                        onClick={() =>
+                          toggleGeneratedCase(testCase.id)
+                        }
+                        aria-label={`${expanded ? "Collapse" : "Expand"} ${testCase.id}`}
+                      >
+                        {expanded ? (
+                          <ChevronDown size={17} />
+                        ) : (
+                          <ChevronRight size={17} />
+                        )}
+                      </button>
+
+                      <label className="generated-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() =>
+                            toggleGeneratedCaseSelection(
+                              testCase.id
+                            )
+                          }
+                        />
+                      </label>
+
+                      <div className="generated-testcase-main">
+                        <strong>{testCase.id}</strong>
+                        <span>{testCase.title}</span>
+                      </div>
+
+                      <span className="generated-testcase-type">
+                        {testCase.type}
+                      </span>
+                    </div>
+
+                    {expanded && (
+                      <div className="generated-testcase-details">
+                        <div>
+                          <strong>Test Steps</strong>
+                          <ol>
+                            {testCase.steps.map((step, index) => (
+                              <li key={index}>{step}</li>
+                            ))}
+                          </ol>
+                        </div>
+
+                        <div className="generated-expected-result">
+                          <strong>Expected Result</strong>
+                          <p>{testCase.expected}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
+
     </section>
   );
 }
@@ -1174,50 +1312,57 @@ function ManualPage() {
 ========================================================= */
 
 function AutomationPage() {
+  type AutomationTestCaseStatus = "Not Automated" | "Automated";
+
   type AutomationTestCase = {
     id: string;
     title: string;
+    status: AutomationTestCaseStatus;
   };
 
   type AutomationSession = {
     id: number;
     session: string;
+    createdBy: string;
     submitted: string;
     status: "Approved";
     testCases: AutomationTestCase[];
   };
 
-  const [sessions] = useState<AutomationSession[]>([
+  const [sessions, setSessions] = useState<AutomationSession[]>([
     {
       id: 1,
       session: "User Login",
+      createdBy: "QA User",
       submitted: "3 hours ago",
       status: "Approved",
       testCases: [
-        { id: "TC001", title: "Valid Login" },
-        { id: "TC002", title: "Invalid Username" },
-        { id: "TC003", title: "Invalid Password" },
-        { id: "TC004", title: "Empty Credentials" },
+        { id: "TC001", title: "Valid Login", status: "Not Automated" },
+        { id: "TC002", title: "Invalid Username", status: "Automated" },
+        { id: "TC003", title: "Invalid Password", status: "Not Automated" },
+        { id: "TC004", title: "Empty Credentials", status: "Not Automated" },
       ],
     },
     {
       id: 2,
       session: "Password Reset",
+      createdBy: "QA User",
       submitted: "1 day ago",
       status: "Approved",
       testCases: [
-        { id: "TC005", title: "Reset Password with Valid Email" },
-        { id: "TC006", title: "Reset Password with Invalid Email" },
+        { id: "TC005", title: "Reset Password with Valid Email", status: "Not Automated" },
+        { id: "TC006", title: "Reset Password with Invalid Email", status: "Not Automated" },
       ],
     },
     {
       id: 3,
       session: "User Registration",
+      createdBy: "QA User",
       submitted: "1 week ago",
       status: "Approved",
       testCases: [
-        { id: "TC007", title: "Register with Valid Details" },
-        { id: "TC008", title: "Register with Existing Email" },
+        { id: "TC007", title: "Register with Valid Details", status: "Not Automated" },
+        { id: "TC008", title: "Register with Existing Email", status: "Not Automated" },
       ],
     },
   ]);
@@ -1233,6 +1378,27 @@ function AutomationPage() {
       current.includes(sessionId)
         ? current.filter((id) => id !== sessionId)
         : [...current, sessionId]
+    );
+  };
+
+  const updateTestCaseStatus = (
+    sessionId: number,
+    testCaseId: string,
+    status: AutomationTestCaseStatus
+  ) => {
+    setSessions((current) =>
+      current.map((session) =>
+        session.id !== sessionId
+          ? session
+          : {
+              ...session,
+              testCases: session.testCases.map((testCase) =>
+                testCase.id === testCaseId
+                  ? { ...testCase, status }
+                  : testCase
+              ),
+            }
+      )
     );
   };
 
@@ -1320,6 +1486,10 @@ function AutomationPage() {
                     <span>{session.testCases.length} test cases</span>
                   </div>
 
+                  <div className="automation-session-created-by">
+                    {session.createdBy}
+                  </div>
+
                   <div className="automation-session-submitted">
                     {session.submitted}
                   </div>
@@ -1344,6 +1514,30 @@ function AutomationPage() {
                             {testCase.title}
                           </span>
                         </div>
+
+                        <select
+                          className={`automation-testcase-status ${
+                            testCase.status === "Automated"
+                              ? "automated"
+                              : ""
+                          }`}
+                          value={testCase.status}
+                          onChange={(event) =>
+                            updateTestCaseStatus(
+                              session.id,
+                              testCase.id,
+                              event.target.value as AutomationTestCaseStatus
+                            )
+                          }
+                          aria-label={`Status for ${testCase.id}`}
+                        >
+                          <option value="Not Automated">
+                            Not Automated
+                          </option>
+                          <option value="Automated">
+                            Automated
+                          </option>
+                        </select>
 
                         <button
                           className="automate-testcase-button"

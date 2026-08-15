@@ -2726,3 +2726,229 @@ button {
     align-self: flex-end;
   }
 }
+
+
+/* =========================================================
+   GENERATOR - EXPANDABLE GENERATED TEST CASES
+========================================================= */
+
+.generated-testcases-panel {
+  width: 100%;
+  border: 1px solid #263952;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0f1928;
+}
+
+.generated-testcases-header {
+  min-height: 56px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #263952;
+  background: #111d2d;
+}
+
+.generated-testcases-header h3 {
+  margin: 0 0 3px;
+  color: #dce7f5;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.generated-testcases-header span {
+  color: #7890af;
+  font-size: 11px;
+}
+
+.generated-format-label {
+  padding: 5px 9px;
+  border: 1px solid #30486b;
+  border-radius: 5px;
+  color: #9db8dd !important;
+  background: #15243a;
+}
+
+.generated-testcase-item {
+  border-bottom: 1px solid #223249;
+}
+
+.generated-testcase-item:last-child {
+  border-bottom: none;
+}
+
+.generated-testcase-row {
+  min-height: 48px;
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: background 0.15s ease;
+}
+
+.generated-testcase-row:hover {
+  background: #121f31;
+}
+
+.generated-expand-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #8298b5;
+  cursor: pointer;
+}
+
+.generated-expand-button:hover {
+  background: #1a2a40;
+  color: #dbe8f8;
+}
+
+.generated-checkbox {
+  display: inline-flex;
+  align-items: center;
+}
+
+.generated-checkbox input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #4d7fe0;
+  cursor: pointer;
+}
+
+.generated-testcase-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.generated-testcase-main strong {
+  color: #8fa8ca;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.generated-testcase-main span {
+  overflow: hidden;
+  color: #d9e4f2;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.generated-testcase-type {
+  min-width: 68px;
+  padding: 4px 7px;
+  border: 1px solid #30415a;
+  border-radius: 5px;
+  color: #91a7c4 !important;
+  text-align: center;
+  font-size: 10px !important;
+}
+
+.generated-testcase-details {
+  margin: 0 12px 10px 70px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  border-left: 2px solid #2e5c9c;
+  background: #101c2c;
+}
+
+.generated-testcase-details strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #a9bdd8;
+  font-size: 11px;
+}
+
+.generated-testcase-details ol {
+  margin: 0;
+  padding-left: 18px;
+  color: #8298b5;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.generated-expected-result p {
+  margin: 0;
+  color: #8298b5;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   AUTOMATION - CREATED BY + USER CONTROLLED TEST STATUS
+========================================================= */
+
+.automation-session-created-by {
+  min-width: 105px;
+  color: #a7b8ce;
+  font-size: 11px;
+}
+
+.automation-testcase-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.automation-testcase-details {
+  min-width: 0;
+  flex: 1;
+}
+
+.automation-testcase-status {
+  width: 130px;
+  height: 31px;
+  padding: 0 8px;
+  border: 1px solid #344760;
+  border-radius: 5px;
+  outline: none;
+  background: #111d2d;
+  color: #8fa4bf;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.automation-testcase-status:hover,
+.automation-testcase-status:focus {
+  border-color: #4d7fe0;
+}
+
+.automation-testcase-status.automated {
+  border-color: #326b55;
+  background: #10261f;
+  color: #72d4a0;
+}
+
+@media (max-width: 850px) {
+  .generated-testcase-details {
+    grid-template-columns: 1fr;
+    margin-left: 45px;
+  }
+
+  .automation-session-created-by {
+    display: none;
+  }
+
+  .automation-testcase-row {
+    flex-wrap: wrap;
+  }
+
+  .automation-testcase-status {
+    width: 125px;
+  }
+}
