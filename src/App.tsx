@@ -20,7 +20,7 @@ import {
 
 import "./App.css";
 
-type Page = "dashboard" | "generator" | "api" | "automation";
+type Page = "dashboard" | "generator" | "api" | "automation" | "settings";
 
 function App() {
   const [activePage, setActivePage] = useState<Page>("dashboard");
@@ -77,6 +77,14 @@ function App() {
                 <span>Automation</span>
               </button>
 
+              <button
+                className={`nav-button ${activePage === "settings" ? "active" : ""}`}
+                onClick={() => setActivePage("settings")}
+              >
+                <Settings size={21} />
+                <span>Settings</span>
+              </button>
+
             </nav>
         </div>
 
@@ -130,8 +138,44 @@ function App() {
 
         {activePage === "automation" && <AutomationPage />}
 
+        {activePage === "settings" && <SettingsPage />}
+
       </main>
     </div>
+  );
+}
+
+/* =========================================================
+   SETTINGS PAGE
+========================================================= */
+
+function SettingsPage() {
+  return (
+    <section className="page">
+      <div className="page-header">
+        <h1>Settings</h1>
+        <p>Manage your QA Portal configuration and integrations.</p>
+      </div>
+
+      <div className="settings-card">
+        <div className="settings-card-icon">
+          <Settings size={21} />
+        </div>
+
+        <div className="settings-card-content">
+          <h2>Extension Integration</h2>
+          <p>
+            Connect the AI Code Assist extension to the QA Portal.
+            Extension integration details will be configured here.
+          </p>
+
+          <div className="settings-coming-soon">
+            Extension Integration
+            <span>Coming next</span>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -3082,3 +3082,70 @@ button {
     grid-template-columns: 26px 52px minmax(0, 1fr);
   }
 }
+
+/* =========================================================
+   SETTINGS PAGE
+========================================================= */
+
+.settings-card {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #2d405b;
+  border-radius: 8px;
+  background: #131f30;
+}
+
+.settings-card-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #30486b;
+  border-radius: 7px;
+  background: #182a43;
+  color: #6f99d8;
+}
+
+.settings-card-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-card-content h2 {
+  margin: 0 0 5px;
+  color: #dce7f5;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.settings-card-content p {
+  margin: 0;
+  max-width: 680px;
+  color: #8197b5;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.settings-coming-soon {
+  width: fit-content;
+  margin-top: 14px;
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #30435e;
+  border-radius: 5px;
+  background: #111d2e;
+  color: #a9bad0;
+  font-size: 11px;
+}
+
+.settings-coming-soon span {
+  color: #7188a9;
+  font-size: 10px;
+}
