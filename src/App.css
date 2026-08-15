@@ -851,6 +851,302 @@ button {
 }
 
 /* =========================================================
+   API TESTING
+========================================================= */
+
+.api-options-card {
+  width: 100%;
+  padding: 10px 12px;
+  background: #131f30;
+  border: 1px solid #2d405b;
+  border-radius: 7px;
+}
+
+.api-option-row {
+  display: grid;
+  grid-template-columns: 1.6fr 0.95fr 0.85fr;
+  align-items: stretch;
+  min-height: 58px;
+}
+
+.api-option-section {
+  min-width: 0;
+  min-height: 58px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0 12px;
+}
+
+.api-option-section:first-child {
+  padding-left: 0;
+}
+
+.api-option-section + .api-option-section {
+  border-left: 1px solid #30435e;
+}
+
+.api-option-section > label {
+  display: block;
+  height: 17px;
+  margin: 0 0 6px;
+  color: #dce7f5;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 17px;
+}
+
+.api-source-option .segment-group,
+.compact-segment-group {
+  width: 100%;
+  height: 32px;
+}
+
+.api-source-option .segment-button,
+.compact-segment-group .segment-button {
+  flex: 1;
+  min-width: 0;
+}
+
+.api-source-option .segment-button {
+  padding-left: 10px;
+  padding-right: 10px;
+  min-width: 0;
+}
+
+.api-test-type-section {
+  padding-right: 0;
+}
+
+.api-checkbox-group {
+  min-height: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
+  width: 100%;
+}
+
+.api-checkbox-group .checkbox-option {
+  width: auto;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.api-checkbox-group .checkbox-option {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.api-checkbox-group input[type="checkbox"] {
+  margin: 0;
+  width: 15px;
+  height: 15px;
+}
+
+.api-test-type-section .api-checkbox-group {
+  padding-right: 2px;
+}
+
+.api-checkbox-group .checkbox-option {
+  white-space: nowrap;
+}
+
+.api-source-area {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.api-jira-id-field {
+  max-width: 620px;
+}
+
+.api-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.api-details-grid .source-field textarea {
+  min-height: 105px;
+}
+
+.api-full-field {
+  grid-column: 1 / -1;
+}
+
+.api-upload-box {
+  min-height: 175px;
+}
+
+.swagger-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.swagger-url-card {
+  min-height: 175px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px;
+  border: 1px solid #30435e;
+  border-radius: 8px;
+  background: #111d30;
+}
+
+.swagger-url-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 7px;
+  color: #dce7f5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.swagger-url-label svg {
+  color: #6f91c1;
+}
+
+.swagger-url-card input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #30435e;
+  border-radius: 6px;
+  outline: none;
+  background: #131f30;
+  color: #e7eef8;
+  font-size: 12px;
+}
+
+.swagger-url-card input:focus {
+  border-color: #4d7fe0;
+}
+
+.swagger-url-card input::placeholder {
+  color: #7188a9;
+}
+
+.swagger-url-card p {
+  margin: 7px 0 0;
+  color: #7188a9;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.api-generate-button {
+  min-width: 205px;
+}
+
+.api-output-box {
+  min-height: 185px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  border: 1px solid #30435e;
+  border-radius: 7px;
+  background: #131f30;
+  text-align: center;
+}
+
+.api-output-icon {
+  margin-bottom: 6px;
+  color: #7086a5;
+}
+
+.api-output-icon.success {
+  color: #56c88a;
+}
+
+.api-output-icon.error {
+  color: #e47780;
+}
+
+.api-output-box h3 {
+  margin: 0 0 3px;
+  color: #dce7f5;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.api-output-box p {
+  max-width: 600px;
+  margin: 0;
+  color: #7188a9;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1050px) {
+  .api-option-row {
+    grid-template-columns: 1.35fr 1fr;
+    gap: 10px 0;
+  }
+
+  .api-test-type-section {
+    grid-column: 1 / -1;
+    padding: 9px 10px 0;
+    border-left: none !important;
+    border-top: 1px solid #30435e;
+  }
+}
+
+@media (max-width: 850px) {
+  .api-option-row {
+    grid-template-columns: 1fr;
+  }
+
+  .api-option-section + .api-option-section {
+    padding: 10px 0 0;
+    border-left: none;
+    border-top: 1px solid #30435e;
+  }
+
+  .api-test-type-section {
+    grid-column: auto;
+  }
+
+  .api-details-grid,
+  .swagger-input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .api-full-field {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 650px) {
+  .api-checkbox-group {
+    height: auto;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .api-jira-id-field {
+    max-width: none;
+  }
+
+  .api-generate-button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
    SOURCE-SPECIFIC MANUAL INPUT
 ========================================================= */
 

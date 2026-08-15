@@ -12,6 +12,10 @@ import {
   LayoutDashboard,
   PlugZap,
   MoreVertical,
+  Upload,
+  Globe2,
+  ShieldCheck,
+  Database,
 } from "lucide-react";
 
 import "./App.css";
@@ -395,29 +399,493 @@ function DashboardPage() {
 ========================================================= */
 
 function ApiTestingPage() {
+  const [source, setSource] = useState("Jira");
+
+  const [outputFormat, setOutputFormat] = useState("Normal");
+
+  const [positive, setPositive] = useState(true);
+  const [negative, setNegative] = useState(false);
+  const [boundary, setBoundary] = useState(false);
+
+  const [jiraId, setJiraId] = useState("");
+  const [jiraFetched, setJiraFetched] = useState(false);
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [apiDetails, setApiDetails] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState("");
+
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [swaggerFile, setSwaggerFile] = useState<File | null>(null);
+  const [swaggerUrl, setSwaggerUrl] = useState("");
+
+  const [generated, setGenerated] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState("");
+
+  const fetchJiraApiRequirement = () => {
+    if (!jiraId.trim()) {
+      alert("Please enter a Jira Issue ID.");
+      return;
+    }
+
+    // Temporary UI mock. Real Jira integration will be connected later.
+    setTitle(`Sample API requirement for ${jiraId.trim()}`);
+    setDescription(
+      "Create and validate the API according to the requirement, including successful, invalid and boundary scenarios."
+    );
+    setApiDetails(
+      "Method: POST\nEndpoint: /api/users\nRequest Body: name, email\nExpected Success Status: 201"
+    );
+    setAdditionalInfo("Validate response body, headers and error messages.");
+    setJiraFetched(true);
+    setGenerated(false);
+    setGenerationError("");
+  };
+
+  const handleApiSourceChange = (nextSource: string) => {
+    setSource(nextSource);
+    setGenerated(false);
+    setGenerationError("");
+    setGenerating(false);
+
+    setJiraFetched(false);
+    setJiraId("");
+    setTitle("");
+    setDescription("");
+    setApiDetails("");
+    setAdditionalInfo("");
+    setDocumentFile(null);
+    setSwaggerFile(null);
+    setSwaggerUrl("");
+  };
+
+  const generateApiTestCases = async () => {
+    if (generating) return;
+
+    if (source === "Jira" && !jiraFetched) {
+      alert("Please fetch the Jira API requirement first.");
+      return;
+    }
+
+    if (
+      source === "Manual" &&
+      (!title.trim() || !description.trim() || !apiDetails.trim())
+    ) {
+      alert("Please enter Title, Description and API Details.");
+      return;
+    }
+
+    if (source === "Document" && !documentFile) {
+      alert("Please upload an API requirement document.");
+      return;
+    }
+
+    if (source === "Swagger/OpenAPI" && !swaggerFile && !swaggerUrl.trim()) {
+      alert("Please upload a Swagger/OpenAPI file or enter its URL.");
+      return;
+    }
+
+    if (!positive && !negative && !boundary) {
+      alert("Please select at least one API Test Type.");
+      return;
+    }
+
+    setGenerating(true);
+    setGenerated(false);
+    setGenerationError("");
+
+    try {
+      // Temporary generation simulation.
+      // Replace this with the API-testing backend call later.
+      // The selected outputFormat will be sent to the backend at that stage.
+      console.log("API generation options:", {
+        source,
+        outputFormat,
+        testTypes: [
+          positive && "Positive",
+          negative && "Negative",
+          boundary && "Boundary",
+        ].filter(Boolean),
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      setGenerated(true);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred while generating API test cases.";
+
+      setGenerationError(message);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <section className="page">
       <div className="page-header">
         <h1>API Testing</h1>
-        <p>Generate and manage API test cases.</p>
+        <p>Generate API test cases from requirements and API specifications.</p>
       </div>
 
-      <div className="source-panel api-placeholder">
-        <div className="source-panel-title">API Testing</div>
-        <div className="api-coming-soon">
-          <PlugZap size={42} />
-          <h3>API Testing</h3>
-          <p>
-            This tab is ready for the API testing workflow.
-            We will design it separately without changing the existing
-            Generator or Automation functionality.
-          </p>
+      {/* API OPTIONS */}
+      <div className="api-options-card">
+        <div className="api-option-row">
+          <div className="api-option-section api-source-option">
+            <label>Source</label>
+
+            <div className="segment-group">
+              <button
+                className={`segment-button ${
+                  source === "Jira" ? "active" : ""
+                }`}
+                onClick={() => handleApiSourceChange("Jira")}
+              >
+                <ClipboardList size={17} />
+                Jira
+              </button>
+
+              <button
+                className={`segment-button ${
+                  source === "Manual" ? "active" : ""
+                }`}
+                onClick={() => handleApiSourceChange("Manual")}
+              >
+                <FileText size={17} />
+                Manual
+              </button>
+
+              <button
+                className={`segment-button ${
+                  source === "Document" ? "active" : ""
+                }`}
+                onClick={() => handleApiSourceChange("Document")}
+              >
+                <FileText size={17} />
+                Document
+              </button>
+
+              <button
+                className={`segment-button ${
+                  source === "Swagger/OpenAPI" ? "active" : ""
+                }`}
+                onClick={() => handleApiSourceChange("Swagger/OpenAPI")}
+              >
+                <Code2 size={17} />
+                Swagger/OpenAPI
+              </button>
+            </div>
+          </div>
+
+          <div className="api-option-section">
+            <label>Output Format</label>
+
+            <div className="segment-group compact-segment-group">
+              {["Normal", "Gherkin", "JSON"].map((format) => (
+                <button
+                  key={format}
+                  className={`segment-button ${
+                    outputFormat === format ? "active" : ""
+                  }`}
+                  onClick={() => setOutputFormat(format)}
+                >
+                  {format === "JSON" ? <Code2 size={16} /> : <FileText size={16} />}
+                  {format}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="api-option-section api-test-type-section">
+            <label>API Test Type</label>
+
+            <div className="api-checkbox-group">
+              <label className="checkbox-option">
+                <input
+                  type="checkbox"
+                  checked={positive}
+                  onChange={(e) => setPositive(e.target.checked)}
+                />
+                <span>Positive</span>
+              </label>
+
+              <label className="checkbox-option">
+                <input
+                  type="checkbox"
+                  checked={negative}
+                  onChange={(e) => setNegative(e.target.checked)}
+                />
+                <span>Negative</span>
+              </label>
+
+              <label className="checkbox-option">
+                <input
+                  type="checkbox"
+                  checked={boundary}
+                  onChange={(e) => setBoundary(e.target.checked)}
+                />
+                <span>Boundary</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SOURCE-SPECIFIC INPUT */}
+      <div className="api-source-area">
+        {source === "Jira" && (
+          <div className="source-panel">
+            <div className="source-panel-title">Jira API Requirement</div>
+
+            <div className="jira-fetch-row">
+              <div className="source-field api-jira-id-field">
+                <label>Jira Issue ID</label>
+                <input
+                  type="text"
+                  value={jiraId}
+                  onChange={(e) => setJiraId(e.target.value)}
+                  placeholder="e.g. PROJ-123"
+                />
+              </div>
+
+              <button
+                className="fetch-button"
+                onClick={fetchJiraApiRequirement}
+              >
+                Fetch
+              </button>
+            </div>
+
+            {jiraFetched && (
+              <div className="api-details-grid">
+                <div className="source-field api-full-field">
+                  <label>Title</label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </div>
+
+                <div className="source-field">
+                  <label>Description</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </div>
+
+                <div className="source-field">
+                  <label>Endpoint / API Details</label>
+                  <textarea
+                    value={apiDetails}
+                    onChange={(e) => setApiDetails(e.target.value)}
+                  />
+                </div>
+
+                <div className="source-field api-full-field">
+                  <label>Additional Information</label>
+                  <textarea
+                    value={additionalInfo}
+                    onChange={(e) => setAdditionalInfo(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {source === "Manual" && (
+          <div className="source-panel">
+            <div className="source-panel-title">API Requirement</div>
+
+            <div className="api-details-grid">
+              <div className="source-field api-full-field">
+                <label>Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter the API requirement title..."
+                />
+              </div>
+
+              <div className="source-field">
+                <label>Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe what the API should do..."
+                />
+              </div>
+
+              <div className="source-field">
+                <label>Endpoint / API Details</label>
+                <textarea
+                  value={apiDetails}
+                  onChange={(e) => setApiDetails(e.target.value)}
+                  placeholder="Method, endpoint, parameters, request body, expected status..."
+                />
+              </div>
+
+              <div className="source-field api-full-field">
+                <label>Additional Information</label>
+                <textarea
+                  value={additionalInfo}
+                  onChange={(e) => setAdditionalInfo(e.target.value)}
+                  placeholder="Headers, authentication, business rules or other details..."
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {source === "Document" && (
+          <div className="source-panel">
+            <div className="source-panel-title">API Requirement Document</div>
+
+            <label className="document-upload-box api-upload-box">
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                onChange={(e) => {
+                  setDocumentFile(e.target.files?.[0] ?? null);
+                  setGenerated(false);
+                  setGenerationError("");
+                }}
+              />
+
+              <Upload size={32} className="upload-icon" />
+
+              <strong>
+                {documentFile
+                  ? documentFile.name
+                  : "Upload API Requirement Document"}
+              </strong>
+
+              <span>
+                {documentFile
+                  ? "File selected successfully"
+                  : "Drag & drop your document here or click to browse"}
+              </span>
+
+              <small>PDF, DOC, DOCX or TXT</small>
+            </label>
+          </div>
+        )}
+
+        {source === "Swagger/OpenAPI" && (
+          <div className="source-panel">
+            <div className="source-panel-title">Swagger / OpenAPI</div>
+
+            <div className="swagger-input-grid">
+              <label className="document-upload-box api-upload-box">
+                <input
+                  type="file"
+                  accept=".json,.yaml,.yml"
+                  onChange={(e) => {
+                    setSwaggerFile(e.target.files?.[0] ?? null);
+                    setGenerated(false);
+                    setGenerationError("");
+                  }}
+                />
+
+                <Database size={30} className="upload-icon" />
+
+                <strong>
+                  {swaggerFile
+                    ? swaggerFile.name
+                    : "Upload OpenAPI Specification"}
+                </strong>
+
+                <span>
+                  {swaggerFile
+                    ? "Specification selected successfully"
+                    : "Upload your OpenAPI JSON or YAML file"}
+                </span>
+
+                <small>JSON, YAML or YML</small>
+              </label>
+
+              <div className="swagger-url-card">
+                <div className="swagger-url-label">
+                  <Globe2 size={15} />
+                  <span>Specification URL</span>
+                </div>
+
+                <input
+                  type="url"
+                  value={swaggerUrl}
+                  onChange={(e) => {
+                    setSwaggerUrl(e.target.value);
+                    setGenerated(false);
+                  }}
+                  placeholder="https://example.com/openapi.json"
+                />
+
+                <p>
+                  Use a publicly accessible OpenAPI / Swagger specification
+                  URL instead of uploading a file.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* GENERATE */}
+      <button
+        className={`generate-button api-generate-button ${
+          generating ? "generating" : ""
+        }`}
+        onClick={generateApiTestCases}
+        disabled={generating}
+      >
+        <Sparkles size={20} className={generating ? "generating-icon" : ""} />
+        {generating
+          ? "Generating API test cases..."
+          : "Generate API Test Cases"}
+      </button>
+
+      {/* GENERATED API TEST CASES */}
+      <div className="generated-section">
+        <label>Generated API Test Cases</label>
+
+        <div className="api-output-box">
+          {generationError ? (
+            <>
+              <PlugZap className="api-output-icon error" size={38} />
+              <h3 className="generation-error-title">
+                Unable to generate API test cases
+              </h3>
+              <p className="generation-error-message">{generationError}</p>
+            </>
+          ) : !generated ? (
+            <>
+              <ShieldCheck className="api-output-icon" size={38} />
+              <h3>No API test cases generated yet</h3>
+              <p>
+                Provide the API requirement or specification and click Generate
+                API Test Cases.
+              </p>
+            </>
+          ) : (
+            <>
+              <ShieldCheck className="api-output-icon success" size={38} />
+              <h3>API test cases generated successfully</h3>
+              <p>
+                Positive, negative, boundary and validation scenarios will
+                appear here.
+              </p>
+            </>
+          )}
         </div>
       </div>
     </section>
   );
 }
-
 
 /* =========================================================
    MANUAL PAGE
