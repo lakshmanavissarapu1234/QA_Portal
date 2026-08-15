@@ -12,10 +12,6 @@ import {
   LayoutDashboard,
   PlugZap,
   MoreVertical,
-  Upload,
-  Globe2,
-  ShieldCheck,
-  Database,
 } from "lucide-react";
 
 import "./App.css";
@@ -398,30 +394,62 @@ function DashboardPage() {
    API TESTING PAGE
 ========================================================= */
 
-function ApiTestingPage() {
-  const [source, setSource] = useState("Jira");
+type ApiSource = "Jira" | "Manual" | "Document" | "Swagger/OpenAPI";
+type ApiOutputFormat = "Normal" | "Gherkin" | "JSON";
 
-  const [outputFormat, setOutputFormat] = useState("Normal");
+function ApiTestingPage() {
+  const [source, setSource] = useState<ApiSource>("Jira");
+  const [outputFormat, setOutputFormat] =
+    useState<ApiOutputFormat>("Normal");
 
   const [positive, setPositive] = useState(true);
   const [negative, setNegative] = useState(false);
   const [boundary, setBoundary] = useState(false);
 
+  // Manual API user story
+  const [apiTitle, setApiTitle] = useState("");
+  const [apiDescription, setApiDescription] = useState("");
+  const [apiAcceptanceCriteria, setApiAcceptanceCriteria] = useState("");
+
+  // Jira
   const [jiraId, setJiraId] = useState("");
   const [jiraFetched, setJiraFetched] = useState(false);
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [apiDetails, setApiDetails] = useState("");
-  const [additionalInfo, setAdditionalInfo] = useState("");
+  // Manual API
+  const [method, setMethod] = useState("POST");
+  const [endpoint, setEndpoint] = useState("");
+  const [requestHeaders, setRequestHeaders] = useState("");
+  const [queryParameters, setQueryParameters] = useState("");
+  const [requestBody, setRequestBody] = useState("");
+  const [apiRequirement, setApiRequirement] = useState("");
 
+  // Document / Swagger
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [swaggerFile, setSwaggerFile] = useState<File | null>(null);
   const [swaggerUrl, setSwaggerUrl] = useState("");
 
   const [generated, setGenerated] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [generationError, setGenerationError] = useState("");
+
+  const resetSourceData = () => {
+    setGenerated(false);
+    setJiraFetched(false);
+    setJiraId("");
+    setRequestHeaders("");
+    setQueryParameters("");
+    setRequestBody("");
+    setApiRequirement("");
+    setApiTitle("");
+    setApiDescription("");
+    setApiAcceptanceCriteria("");
+    setDocumentFile(null);
+    setSwaggerFile(null);
+    setSwaggerUrl("");
+  };
+
+  const handleApiSourceChange = (nextSource: ApiSource) => {
+    setSource(nextSource);
+    resetSourceData();
+  };
 
   const fetchJiraApiRequirement = () => {
     if (!jiraId.trim()) {
@@ -429,40 +457,23 @@ function ApiTestingPage() {
       return;
     }
 
-    // Temporary UI mock. Real Jira integration will be connected later.
-    setTitle(`Sample API requirement for ${jiraId.trim()}`);
-    setDescription(
-      "Create and validate the API according to the requirement, including successful, invalid and boundary scenarios."
-    );
-    setApiDetails(
-      "Method: POST\nEndpoint: /api/users\nRequest Body: name, email\nExpected Success Status: 201"
-    );
-    setAdditionalInfo("Validate response body, headers and error messages.");
+    // UI-only mock. Replace with the real Jira API/backend integration.
     setJiraFetched(true);
     setGenerated(false);
-    setGenerationError("");
   };
 
-  const handleApiSourceChange = (nextSource: string) => {
-    setSource(nextSource);
+  const loadSwagger = () => {
+    if (!swaggerFile && !swaggerUrl.trim()) {
+      alert("Upload an OpenAPI JSON/YAML file or enter a Swagger/OpenAPI URL.");
+      return;
+    }
+
+    // UI-only mock. Replace with the real OpenAPI parser/backend integration.
     setGenerated(false);
-    setGenerationError("");
-    setGenerating(false);
-
-    setJiraFetched(false);
-    setJiraId("");
-    setTitle("");
-    setDescription("");
-    setApiDetails("");
-    setAdditionalInfo("");
-    setDocumentFile(null);
-    setSwaggerFile(null);
-    setSwaggerUrl("");
+    alert("API specification loaded successfully (UI preview).");
   };
 
-  const generateApiTestCases = async () => {
-    if (generating) return;
-
+  const generateApiTestCases = () => {
     if (source === "Jira" && !jiraFetched) {
       alert("Please fetch the Jira API requirement first.");
       return;
@@ -470,9 +481,11 @@ function ApiTestingPage() {
 
     if (
       source === "Manual" &&
-      (!title.trim() || !description.trim() || !apiDetails.trim())
+      (!apiTitle.trim() ||
+        !apiDescription.trim() ||
+        !apiAcceptanceCriteria.trim())
     ) {
-      alert("Please enter Title, Description and API Details.");
+      alert("Please enter Title, Description and Acceptance Criteria.");
       return;
     }
 
@@ -482,7 +495,7 @@ function ApiTestingPage() {
     }
 
     if (source === "Swagger/OpenAPI" && !swaggerFile && !swaggerUrl.trim()) {
-      alert("Please upload a Swagger/OpenAPI file or enter its URL.");
+      alert("Please upload an OpenAPI file or enter a Swagger/OpenAPI URL.");
       return;
     }
 
@@ -491,36 +504,7 @@ function ApiTestingPage() {
       return;
     }
 
-    setGenerating(true);
-    setGenerated(false);
-    setGenerationError("");
-
-    try {
-      // Temporary generation simulation.
-      // Replace this with the API-testing backend call later.
-      // The selected outputFormat will be sent to the backend at that stage.
-      console.log("API generation options:", {
-        source,
-        outputFormat,
-        testTypes: [
-          positive && "Positive",
-          negative && "Negative",
-          boundary && "Boundary",
-        ].filter(Boolean),
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setGenerated(true);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred while generating API test cases.";
-
-      setGenerationError(message);
-    } finally {
-      setGenerating(false);
-    }
+    setGenerated(true);
   };
 
   return (
@@ -533,71 +517,55 @@ function ApiTestingPage() {
       {/* API OPTIONS */}
       <div className="api-options-card">
         <div className="api-option-row">
+          {/* SOURCE */}
           <div className="api-option-section api-source-option">
             <label>Source</label>
 
             <div className="segment-group">
-              <button
-                className={`segment-button ${
-                  source === "Jira" ? "active" : ""
-                }`}
-                onClick={() => handleApiSourceChange("Jira")}
-              >
-                <ClipboardList size={17} />
-                Jira
-              </button>
-
-              <button
-                className={`segment-button ${
-                  source === "Manual" ? "active" : ""
-                }`}
-                onClick={() => handleApiSourceChange("Manual")}
-              >
-                <FileText size={17} />
-                Manual
-              </button>
-
-              <button
-                className={`segment-button ${
-                  source === "Document" ? "active" : ""
-                }`}
-                onClick={() => handleApiSourceChange("Document")}
-              >
-                <FileText size={17} />
-                Document
-              </button>
-
-              <button
-                className={`segment-button ${
-                  source === "Swagger/OpenAPI" ? "active" : ""
-                }`}
-                onClick={() => handleApiSourceChange("Swagger/OpenAPI")}
-              >
-                <Code2 size={17} />
-                Swagger/OpenAPI
-              </button>
+              {(["Jira", "Manual", "Document", "Swagger/OpenAPI"] as ApiSource[]).map(
+                (item) => (
+                  <button
+                    key={item}
+                    className={`segment-button ${
+                      source === item ? "active" : ""
+                    }`}
+                    onClick={() => handleApiSourceChange(item)}
+                  >
+                    {item === "Jira" ? (
+                      <ClipboardList size={14} />
+                    ) : (
+                      <FileText size={14} />
+                    )}
+                    {item}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
+          {/* OUTPUT FORMAT */}
           <div className="api-option-section">
             <label>Output Format</label>
 
             <div className="segment-group compact-segment-group">
-              {["Normal", "Gherkin", "JSON"].map((format) => (
-                <button
-                  key={format}
-                  className={`segment-button ${
-                    outputFormat === format ? "active" : ""
-                  }`}
-                  onClick={() => setOutputFormat(format)}
-                >
-                  {format === "JSON" ? <Code2 size={16} /> : <FileText size={16} />}
-                  {format}
-                </button>
-              ))}
+              {(["Normal", "Gherkin", "JSON"] as ApiOutputFormat[]).map(
+                (item) => (
+                  <button
+                    key={item}
+                    className={`segment-button ${
+                      outputFormat === item ? "active" : ""
+                    }`}
+                    onClick={() => setOutputFormat(item)}
+                  >
+                    {item === "JSON" ? <Code2 size={14} /> : <FileText size={14} />}
+                    {item}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
+          {/* TEST TYPE */}
           <div className="api-option-section api-test-type-section">
             <label>API Test Type</label>
 
@@ -635,6 +603,8 @@ function ApiTestingPage() {
 
       {/* SOURCE-SPECIFIC INPUT */}
       <div className="api-source-area">
+
+        {/* JIRA */}
         {source === "Jira" && (
           <div className="source-panel">
             <div className="source-panel-title">Jira API Requirement</div>
@@ -646,7 +616,7 @@ function ApiTestingPage() {
                   type="text"
                   value={jiraId}
                   onChange={(e) => setJiraId(e.target.value)}
-                  placeholder="e.g. PROJ-123"
+                  placeholder="e.g. API-123"
                 />
               </div>
 
@@ -659,89 +629,56 @@ function ApiTestingPage() {
             </div>
 
             {jiraFetched && (
-              <div className="api-details-grid">
-                <div className="source-field api-full-field">
-                  <label>Title</label>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                </div>
-
-                <div className="source-field">
-                  <label>Description</label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-
-                <div className="source-field">
-                  <label>Endpoint / API Details</label>
-                  <textarea
-                    value={apiDetails}
-                    onChange={(e) => setApiDetails(e.target.value)}
-                  />
-                </div>
-
-                <div className="source-field api-full-field">
-                  <label>Additional Information</label>
-                  <textarea
-                    value={additionalInfo}
-                    onChange={(e) => setAdditionalInfo(e.target.value)}
-                  />
-                </div>
+              <div className="api-requirement-preview">
+                <div className="api-preview-status">✓ Requirement fetched successfully</div>
+                <p>
+                  The backend will extract the API method, endpoint, request
+                  details, response expectations and acceptance criteria from
+                  the Jira issue.
+                </p>
               </div>
             )}
           </div>
         )}
 
+        {/* MANUAL */}
         {source === "Manual" && (
           <div className="source-panel">
-            <div className="source-panel-title">API Requirement</div>
+            <div className="source-panel-title">API User Story</div>
 
-            <div className="api-details-grid">
+            <div className="api-user-story-grid">
               <div className="source-field api-full-field">
                 <label>Title</label>
                 <input
                   type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter the API requirement title..."
+                  value={apiTitle}
+                  onChange={(e) => setApiTitle(e.target.value)}
+                  placeholder="Enter the API user story title..."
                 />
               </div>
 
               <div className="source-field">
                 <label>Description</label>
                 <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe what the API should do..."
+                  value={apiDescription}
+                  onChange={(e) => setApiDescription(e.target.value)}
+                  placeholder="Describe the API requirement and expected behavior..."
                 />
               </div>
 
               <div className="source-field">
-                <label>Endpoint / API Details</label>
+                <label>Acceptance Criteria</label>
                 <textarea
-                  value={apiDetails}
-                  onChange={(e) => setApiDetails(e.target.value)}
-                  placeholder="Method, endpoint, parameters, request body, expected status..."
-                />
-              </div>
-
-              <div className="source-field api-full-field">
-                <label>Additional Information</label>
-                <textarea
-                  value={additionalInfo}
-                  onChange={(e) => setAdditionalInfo(e.target.value)}
-                  placeholder="Headers, authentication, business rules or other details..."
+                  value={apiAcceptanceCriteria}
+                  onChange={(e) => setApiAcceptanceCriteria(e.target.value)}
+                  placeholder="Enter the acceptance criteria for the API..."
                 />
               </div>
             </div>
           </div>
         )}
 
+        {/* DOCUMENT */}
         {source === "Document" && (
           <div className="source-panel">
             <div className="source-panel-title">API Requirement Document</div>
@@ -753,11 +690,10 @@ function ApiTestingPage() {
                 onChange={(e) => {
                   setDocumentFile(e.target.files?.[0] ?? null);
                   setGenerated(false);
-                  setGenerationError("");
                 }}
               />
 
-              <Upload size={32} className="upload-icon" />
+              <FileText size={34} className="upload-icon" />
 
               <strong>
                 {documentFile
@@ -776,59 +712,45 @@ function ApiTestingPage() {
           </div>
         )}
 
+        {/* SWAGGER / OPENAPI */}
         {source === "Swagger/OpenAPI" && (
           <div className="source-panel">
-            <div className="source-panel-title">Swagger / OpenAPI</div>
+            <div className="source-panel-title">Swagger / OpenAPI Specification</div>
 
             <div className="swagger-input-grid">
-              <label className="document-upload-box api-upload-box">
+              <label className="swagger-upload-card">
                 <input
                   type="file"
                   accept=".json,.yaml,.yml"
                   onChange={(e) => {
                     setSwaggerFile(e.target.files?.[0] ?? null);
                     setGenerated(false);
-                    setGenerationError("");
                   }}
                 />
-
-                <Database size={30} className="upload-icon" />
-
+                <FileText size={28} />
                 <strong>
-                  {swaggerFile
-                    ? swaggerFile.name
-                    : "Upload OpenAPI Specification"}
+                  {swaggerFile ? swaggerFile.name : "Upload OpenAPI File"}
                 </strong>
-
-                <span>
-                  {swaggerFile
-                    ? "Specification selected successfully"
-                    : "Upload your OpenAPI JSON or YAML file"}
-                </span>
-
-                <small>JSON, YAML or YML</small>
+                <span>JSON, YAML or YML</span>
               </label>
 
               <div className="swagger-url-card">
-                <div className="swagger-url-label">
-                  <Globe2 size={15} />
-                  <span>Specification URL</span>
+                <div className="source-field">
+                  <label>Swagger / OpenAPI URL</label>
+                  <input
+                    type="url"
+                    value={swaggerUrl}
+                    onChange={(e) => setSwaggerUrl(e.target.value)}
+                    placeholder="https://example.com/openapi.json"
+                  />
                 </div>
+                <span className="swagger-or">OR use a URL to the specification</span>
+              </div>
 
-                <input
-                  type="url"
-                  value={swaggerUrl}
-                  onChange={(e) => {
-                    setSwaggerUrl(e.target.value);
-                    setGenerated(false);
-                  }}
-                  placeholder="https://example.com/openapi.json"
-                />
-
-                <p>
-                  Use a publicly accessible OpenAPI / Swagger specification
-                  URL instead of uploading a file.
-                </p>
+              <div className="api-full-field swagger-load-row">
+                <button className="fetch-button" onClick={loadSwagger}>
+                  Load API Specification
+                </button>
               </div>
             </div>
           </div>
@@ -837,48 +759,31 @@ function ApiTestingPage() {
 
       {/* GENERATE */}
       <button
-        className={`generate-button api-generate-button ${
-          generating ? "generating" : ""
-        }`}
+        className="generate-button api-generate-button"
         onClick={generateApiTestCases}
-        disabled={generating}
       >
-        <Sparkles size={20} className={generating ? "generating-icon" : ""} />
-        {generating
-          ? "Generating API test cases..."
-          : "Generate API Test Cases"}
+        <Sparkles size={20} />
+        Generate API Test Cases
       </button>
 
-      {/* GENERATED API TEST CASES */}
+      {/* GENERATED */}
       <div className="generated-section">
         <label>Generated API Test Cases</label>
 
-        <div className="api-output-box">
-          {generationError ? (
+        <div className="output-box">
+          <FileText className="document-icon" size={40} />
+
+          {!generated ? (
             <>
-              <PlugZap className="api-output-icon error" size={38} />
-              <h3 className="generation-error-title">
-                Unable to generate API test cases
-              </h3>
-              <p className="generation-error-message">{generationError}</p>
-            </>
-          ) : !generated ? (
-            <>
-              <ShieldCheck className="api-output-icon" size={38} />
               <h3>No API test cases generated yet</h3>
               <p>
-                Provide the API requirement or specification and click Generate
-                API Test Cases.
+                Complete the selected source details and click Generate API Test Cases.
               </p>
             </>
           ) : (
             <>
-              <ShieldCheck className="api-output-icon success" size={38} />
               <h3>API test cases generated successfully</h3>
-              <p>
-                Positive, negative, boundary and validation scenarios will
-                appear here.
-              </p>
+              <p>{outputFormat} API test cases will appear here.</p>
             </>
           )}
         </div>

@@ -2183,3 +2183,172 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   API SOURCE-SPECIFIC INPUTS
+========================================================= */
+
+.api-requirement-preview {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #2f4d75;
+  border-radius: 7px;
+  background: #111f33;
+}
+
+.api-preview-status {
+  color: #69d39b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.api-requirement-preview p {
+  margin: 5px 0 0;
+  color: #8da2c0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.api-native-select {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #30435e;
+  border-radius: 6px;
+  outline: none;
+  background: #131f30;
+  color: #e7eef8;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.api-native-select:focus {
+  border-color: #4d7fe0;
+}
+
+.optional-label {
+  color: #7188a9;
+  font-weight: 400;
+}
+
+.api-upload-box {
+  min-height: 175px;
+}
+
+.swagger-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.swagger-upload-card,
+.swagger-url-card {
+  min-height: 150px;
+  padding: 18px;
+  border: 1px solid #30435e;
+  border-radius: 8px;
+  background: #111d30;
+}
+
+.swagger-upload-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #8fa4c0;
+  text-align: center;
+  cursor: pointer;
+}
+
+.swagger-upload-card:hover {
+  border-color: #4d7fe0;
+  background: #14233a;
+}
+
+.swagger-upload-card svg {
+  color: #6e9bea;
+}
+
+.swagger-upload-card strong {
+  color: #dce7f5;
+  font-size: 13px;
+}
+
+.swagger-upload-card span {
+  color: #7188a9;
+  font-size: 11px;
+}
+
+.swagger-upload-card input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.swagger-url-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.swagger-or {
+  display: block;
+  margin-top: 7px;
+  color: #7188a9;
+  font-size: 11px;
+}
+
+.swagger-load-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+@media (max-width: 850px) {
+  .swagger-input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .swagger-load-row {
+    justify-content: stretch;
+  }
+
+  .swagger-load-row .fetch-button {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   API USER STORY INPUT
+========================================================= */
+
+.api-user-story-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.api-user-story-grid .api-full-field {
+  grid-column: 1 / -1;
+}
+
+.api-user-story-grid textarea {
+  min-height: 115px;
+}
+
+@media (max-width: 850px) {
+  .api-user-story-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .api-user-story-grid .api-full-field {
+    grid-column: auto;
+  }
+}
