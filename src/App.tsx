@@ -9,14 +9,17 @@ import {
   Sparkles,
   Code2,
   ClipboardList,
+  LayoutDashboard,
+  PlugZap,
+  MoreVertical,
 } from "lucide-react";
 
 import "./App.css";
 
-type Page = "manual" | "automation" | "settings";
+type Page = "dashboard" | "generator" | "api" | "automation";
 
 function App() {
-  const [activePage, setActivePage] = useState<Page>("manual");
+  const [activePage, setActivePage] = useState<Page>("dashboard");
   const [darkMode, setDarkMode] = useState(true);
 
   return (
@@ -36,37 +39,41 @@ function App() {
             <span>QA Portal</span>
           </div>
 
-          {/* NAVIGATION */}
-          <nav className="navigation">
+          {/* NAVIGATION */}            <nav className="navigation">
 
-            <button
-              className={`nav-button ${activePage === "manual" ? "active" : ""
-                }`}
-              onClick={() => setActivePage("manual")}
-            >
-              <FileText size={21} />
-              <span>Manual</span>
-            </button>
+              <button
+                className={`nav-button ${activePage === "dashboard" ? "active" : ""}`}
+                onClick={() => setActivePage("dashboard")}
+              >
+                <LayoutDashboard size={21} />
+                <span>Dashboard</span>
+              </button>
 
-            <button
-              className={`nav-button ${activePage === "automation" ? "active" : ""
-                }`}
-              onClick={() => setActivePage("automation")}
-            >
-              <Bot size={21} />
-              <span>Automation</span>
-            </button>
+              <button
+                className={`nav-button ${activePage === "generator" ? "active" : ""}`}
+                onClick={() => setActivePage("generator")}
+              >
+                <Sparkles size={21} />
+                <span>Generator</span>
+              </button>
 
-            <button
-              className={`nav-button ${activePage === "settings" ? "active" : ""
-                }`}
-              onClick={() => setActivePage("settings")}
-            >
-              <Settings size={21} />
-              <span>Settings</span>
-            </button>
+              <button
+                className={`nav-button ${activePage === "api" ? "active" : ""}`}
+                onClick={() => setActivePage("api")}
+              >
+                <PlugZap size={21} />
+                <span>API Testing</span>
+              </button>
 
-          </nav>
+              <button
+                className={`nav-button ${activePage === "automation" ? "active" : ""}`}
+                onClick={() => setActivePage("automation")}
+              >
+                <Bot size={21} />
+                <span>Automation</span>
+              </button>
+
+            </nav>
         </div>
 
         {/* =========================
@@ -111,16 +118,306 @@ function App() {
       ========================= */}
       <main className="main-content">
 
-        {activePage === "manual" && <ManualPage />}
+        {activePage === "dashboard" && <DashboardPage />}
+
+        {activePage === "generator" && <ManualPage />}
+
+        {activePage === "api" && <ApiTestingPage />}
 
         {activePage === "automation" && <AutomationPage />}
-
-        {activePage === "settings" && <SettingsPage />}
 
       </main>
     </div>
   );
 }
+
+/* =========================================================
+   DASHBOARD PAGE
+========================================================= */
+
+type SessionStatus = "Pending Review" | "Approved" | "Rejected";
+
+type Session = {
+  id: number;
+  session: string;
+  createdBy: string;
+  submitted: string;
+  assignedTo: string;
+  status: SessionStatus;
+};
+
+function DashboardPage() {
+  const [dashboardTab, setDashboardTab] = useState<
+    "my" | "assigned" | "all"
+  >("my");
+
+  const [openActionId, setOpenActionId] = useState<number | null>(null);
+
+  // UI sample data for the Dashboard.
+  // This will later be replaced by data returned from the backend/storage.
+  const [sessions, setSessions] = useState<Session[]>([
+    {
+      id: 1,
+      session: "User Login",
+      createdBy: "QA User",
+      submitted: "3 hours ago",
+      assignedTo: "John",
+      status: "Pending Review",
+    },
+    {
+      id: 2,
+      session: "Password Reset",
+      createdBy: "QA User",
+      submitted: "1 day ago",
+      assignedTo: "Sarah",
+      status: "Approved",
+    },
+    {
+      id: 3,
+      session: "User Registration",
+      createdBy: "QA User",
+      submitted: "1 week ago",
+      assignedTo: "Mike",
+      status: "Rejected",
+    },
+  ]);
+
+  const getSessionsForTab = () => {
+    if (dashboardTab === "my") {
+      return sessions.filter((item) => item.createdBy === "QA User");
+    }
+
+    if (dashboardTab === "assigned") {
+      return sessions.filter((item) => item.assignedTo === "QA User");
+    }
+
+    return sessions;
+  };
+
+  const visibleSessions = getSessionsForTab();
+
+  const handleAction = (action: string, item: Session) => {
+    setOpenActionId(null);
+
+    if (action === "Delete") {
+      setSessions((current) =>
+        current.filter((session) => session.id !== item.id)
+      );
+      return;
+    }
+
+    // Temporary UI actions. Backend behavior will be connected later.
+    console.log(`${action} selected for ${item.session}`);
+  };
+
+  return (
+    <section className="page">
+      <div className="page-header">
+        <h1>Dashboard</h1>
+        <p>Manage test case sessions and review workflow.</p>
+      </div>
+
+      {/* DASHBOARD SUB TABS - SINGLE ROW */}
+      <div className="dashboard-tabs">
+        <button
+          className={`dashboard-tab ${dashboardTab === "my" ? "active" : ""}`}
+          onClick={() => {
+            setDashboardTab("my");
+            setOpenActionId(null);
+          }}
+        >
+          My Sessions
+        </button>
+
+        <button
+          className={`dashboard-tab ${
+            dashboardTab === "assigned" ? "active" : ""
+          }`}
+          onClick={() => {
+            setDashboardTab("assigned");
+            setOpenActionId(null);
+          }}
+        >
+          Assigned for Review
+        </button>
+
+        <button
+          className={`dashboard-tab ${
+            dashboardTab === "all" ? "active" : ""
+          }`}
+          onClick={() => {
+            setDashboardTab("all");
+            setOpenActionId(null);
+          }}
+        >
+          All Sessions
+        </button>
+      </div>
+
+      {/* SESSION TABLE */}
+      <div className="sessions-panel">
+        <div className="sessions-panel-header">
+          <div>
+            <h2>
+              {dashboardTab === "my"
+                ? "My Sessions"
+                : dashboardTab === "assigned"
+                  ? "Assigned for Review"
+                  : "All Sessions"}
+            </h2>
+            <span>
+              {visibleSessions.length}{" "}
+              {visibleSessions.length === 1 ? "session" : "sessions"}
+            </span>
+          </div>
+        </div>
+
+        {visibleSessions.length === 0 ? (
+          <div className="sessions-empty">
+            <FileText size={34} />
+            <h3>No sessions found</h3>
+            <p>
+              {dashboardTab === "assigned"
+                ? "Sessions assigned to you for review will appear here."
+                : "Submitted test case sessions will appear here."}
+            </p>
+          </div>
+        ) : (
+          <div className="sessions-table-wrapper">
+            <table className="sessions-table">
+              <thead>
+                <tr>
+                  <th>Session</th>
+                  <th>Created By</th>
+                  <th>Submitted</th>
+                  <th>Assigned To</th>
+                  <th>Status</th>
+                  <th className="actions-column">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {visibleSessions.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <button
+                        className="session-name"
+                        onClick={() => handleAction("View", item)}
+                      >
+                        {item.session}
+                      </button>
+                    </td>
+
+                    <td>{item.createdBy}</td>
+
+                    <td className="submitted-time">{item.submitted}</td>
+
+                    <td>{item.assignedTo}</td>
+
+                    <td>
+                      <span
+                        className={`status-badge ${
+                          item.status === "Pending Review"
+                            ? "pending"
+                            : item.status === "Approved"
+                              ? "approved"
+                              : "rejected"
+                        }`}
+                      >
+                        {item.status}
+                      </span>
+                    </td>
+
+                    <td className="actions-cell">
+                      <button
+                        className="action-menu-button"
+                        aria-label={`Actions for ${item.session}`}
+                        onClick={() =>
+                          setOpenActionId(
+                            openActionId === item.id ? null : item.id
+                          )
+                        }
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+
+                      {openActionId === item.id && (
+                        <div className="action-menu">
+                          <button onClick={() => handleAction("View", item)}>
+                            View
+                          </button>
+
+                          {item.status !== "Approved" && (
+                            <button onClick={() => handleAction("Assign", item)}>
+                              Assign
+                            </button>
+                          )}
+
+                          {item.status === "Approved" && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleAction("Push to Storage", item)
+                                }
+                              >
+                                Push to Storage
+                              </button>
+                              <button
+                                onClick={() => handleAction("Automate", item)}
+                              >
+                                Automate
+                              </button>
+                            </>
+                          )}
+
+                          <button
+                            className="danger-action"
+                            onClick={() => handleAction("Delete", item)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* =========================================================
+   API TESTING PAGE
+========================================================= */
+
+function ApiTestingPage() {
+  return (
+    <section className="page">
+      <div className="page-header">
+        <h1>API Testing</h1>
+        <p>Generate and manage API test cases.</p>
+      </div>
+
+      <div className="source-panel api-placeholder">
+        <div className="source-panel-title">API Testing</div>
+        <div className="api-coming-soon">
+          <PlugZap size={42} />
+          <h3>API Testing</h3>
+          <p>
+            This tab is ready for the API testing workflow.
+            We will design it separately without changing the existing
+            Generator or Automation functionality.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 /* =========================================================
    MANUAL PAGE
@@ -143,6 +440,8 @@ function ManualPage() {
 
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [generated, setGenerated] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState("");
 
   const fetchJiraStory = () => {
     if (!jiraId.trim()) {
@@ -166,13 +465,17 @@ function ManualPage() {
   const handleSourceChange = (nextSource: string) => {
     setSource(nextSource);
     setGenerated(false);
+    setGenerationError("");
+    setGenerating(false);
 
     if (nextSource === "Jira") {
       setJiraFetched(false);
     }
   };
 
-  const generateTestCases = () => {
+  const generateTestCases = async () => {
+    if (generating) return;
+
     if (source === "Jira" && !jiraFetched) {
       alert("Please fetch the Jira user story first.");
       return;
@@ -190,14 +493,37 @@ function ManualPage() {
       return;
     }
 
-    setGenerated(true);
+    setGenerating(true);
+    setGenerated(false);
+    setGenerationError("");
+
+    try {
+      /*
+       * Temporary generation simulation.
+       * Replace this block with the real backend fetch() when
+       * the manual test-case API is connected.
+       */
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      setGenerated(true);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred while generating test cases.";
+
+      setGenerated(false);
+      setGenerationError(message);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
     <section className="page">
       <div className="page-header">
-        <h1>Manual Test Cases</h1>
-        <p>Generate manual test cases from your requirements.</p>
+        <h1>Generator</h1>
+        <p>Generate test cases from your requirements.</p>
       </div>
 
       {/* OPTIONS */}
@@ -424,9 +750,13 @@ function ManualPage() {
       </div>
 
       {/* GENERATE */}
-      <button className="generate-button" onClick={generateTestCases}>
-        <Sparkles size={20} />
-        Generate Test Cases
+      <button
+        className={`generate-button ${generating ? "generating" : ""}`}
+        onClick={generateTestCases}
+        disabled={generating}
+      >
+        <Sparkles size={20} className={generating ? "generating-icon" : ""} />
+        {generating ? "Generating test cases..." : "Generate Test Cases"}
       </button>
 
       {/* GENERATED - ALWAYS BELOW GENERATE BUTTON */}
@@ -436,7 +766,12 @@ function ManualPage() {
         <div className="output-box">
           <FileText className="document-icon" size={40} />
 
-          {!generated ? (
+          {generationError ? (
+            <>
+              <h3 className="generation-error-title">Unable to generate test cases</h3>
+              <p className="generation-error-message">{generationError}</p>
+            </>
+          ) : !generated ? (
             <>
               <h3>No test cases generated yet</h3>
               <p>
@@ -924,43 +1259,5 @@ function AutomationPage() {
   );
 }
 
-/* =========================================================
-   SETTINGS PAGE
-========================================================= */
-
-function SettingsPage() {
-
-  return (
-    <section className="page">
-
-      <div className="page-header">
-
-        <h1>Settings</h1>
-
-        <p>
-          Configure your QA Portal preferences.
-        </p>
-
-      </div>
-
-      <div className="settings-card">
-
-        <Settings size={28} />
-
-        <div>
-
-          <h3>Portal Settings</h3>
-
-          <p>
-            Additional configuration options can be added here.
-          </p>
-
-        </div>
-
-      </div>
-
-    </section>
-  );
-}
 
 export default App;
