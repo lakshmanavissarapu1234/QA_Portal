@@ -12,6 +12,10 @@ import {
   LayoutDashboard,
   PlugZap,
   MoreVertical,
+  ChevronRight,
+  ChevronDown,
+  X,
+  ExternalLink,
 } from "lucide-react";
 
 import "./App.css";
@@ -1170,467 +1174,268 @@ function ManualPage() {
 ========================================================= */
 
 function AutomationPage() {
-  const [source, setSource] = useState("Jira");
-
-  const [framework, setFramework] = useState("Playwright");
-  const [language, setLanguage] = useState("TypeScript");
-
-  const [pom, setPom] = useState(true);
-  const [spec, setSpec] = useState(true);
-  const [json, setJson] = useState(true);
-
-  // Jira
-  const [jiraId, setJiraId] = useState("");
-  const [jiraFetched, setJiraFetched] = useState(false);
-
-  // Automation Test Case details
-  const [testCaseTitle, setTestCaseTitle] = useState("");
-  const [testSteps, setTestSteps] = useState("");
-  const [additionalInfo, setAdditionalInfo] = useState("");
-
-  // Document
-  const [documentFile, setDocumentFile] = useState<File | null>(null);
-
-  const [generated, setGenerated] = useState(false);
-
-  const frameworks = [
-    "Playwright",
-    "Selenium",
-    "Cypress",
-  ];
-
-  const languages = [
-    "TypeScript",
-    "JavaScript",
-    "Python",
-    "Java",
-  ];
-
-  // ---------------------------------------------
-  // FETCH JIRA TEST CASE
-  // ---------------------------------------------
-  const fetchJiraTestCase = () => {
-    if (!jiraId.trim()) {
-      alert("Please enter a Jira Issue ID.");
-      return;
-    }
-
-    // Temporary UI mock.
-    // Real Jira API will be connected through backend later.
-    setTestCaseTitle(`Sample test case for ${jiraId.trim()}`);
-
-    setTestSteps(
-      "1. Open the application.\n" +
-      "2. Enter the required information.\n" +
-      "3. Click Submit."
-    );
-
-    setAdditionalInfo(
-      "Verify that the expected result is displayed successfully."
-    );
-
-    setJiraFetched(true);
-    setGenerated(false);
+  type AutomationTestCase = {
+    id: string;
+    title: string;
   };
 
-  // ---------------------------------------------
-  // CHANGE SOURCE
-  // ---------------------------------------------
-  const handleSourceChange = (nextSource: string) => {
-    setSource(nextSource);
-    setGenerated(false);
-
-    // Clear source-specific data
-    setJiraFetched(false);
-    setJiraId("");
-    setTestCaseTitle("");
-    setTestSteps("");
-    setAdditionalInfo("");
-    setDocumentFile(null);
+  type AutomationSession = {
+    id: number;
+    session: string;
+    submitted: string;
+    status: "Approved";
+    testCases: AutomationTestCase[];
   };
 
-  // ---------------------------------------------
-  // GENERATE AUTOMATION CODE
-  // ---------------------------------------------
-  const generateAutomation = () => {
-    if (source === "Jira" && !jiraFetched) {
-      alert("Please fetch the Jira test case first.");
+  const [sessions] = useState<AutomationSession[]>([
+    {
+      id: 1,
+      session: "User Login",
+      submitted: "3 hours ago",
+      status: "Approved",
+      testCases: [
+        { id: "TC001", title: "Valid Login" },
+        { id: "TC002", title: "Invalid Username" },
+        { id: "TC003", title: "Invalid Password" },
+        { id: "TC004", title: "Empty Credentials" },
+      ],
+    },
+    {
+      id: 2,
+      session: "Password Reset",
+      submitted: "1 day ago",
+      status: "Approved",
+      testCases: [
+        { id: "TC005", title: "Reset Password with Valid Email" },
+        { id: "TC006", title: "Reset Password with Invalid Email" },
+      ],
+    },
+    {
+      id: 3,
+      session: "User Registration",
+      submitted: "1 week ago",
+      status: "Approved",
+      testCases: [
+        { id: "TC007", title: "Register with Valid Details" },
+        { id: "TC008", title: "Register with Existing Email" },
+      ],
+    },
+  ]);
+
+  const [expandedSessions, setExpandedSessions] = useState<number[]>([]);
+  const [selectedTestCase, setSelectedTestCase] =
+    useState<AutomationTestCase | null>(null);
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [automationModalOpen, setAutomationModalOpen] = useState(false);
+
+  const toggleSession = (sessionId: number) => {
+    setExpandedSessions((current) =>
+      current.includes(sessionId)
+        ? current.filter((id) => id !== sessionId)
+        : [...current, sessionId]
+    );
+  };
+
+  const openAutomationModal = (testCase: AutomationTestCase) => {
+    setSelectedTestCase(testCase);
+    setWebsiteUrl("");
+    setAutomationModalOpen(true);
+  };
+
+  const closeAutomationModal = () => {
+    setAutomationModalOpen(false);
+    setSelectedTestCase(null);
+    setWebsiteUrl("");
+  };
+
+  const openWebsite = () => {
+    const url = websiteUrl.trim();
+
+    if (!url) {
+      alert("Please enter the website URL.");
       return;
     }
 
-    if (
-      source === "Manual" &&
-      (!testCaseTitle.trim() ||
-        !testSteps.trim() ||
-        !additionalInfo.trim())
-    ) {
-      alert(
-        "Please enter Test Case Title, Test Steps and Additional Info."
-      );
-      return;
+    let normalizedUrl = url;
+
+    if (!/^https?:\/\//i.test(normalizedUrl)) {
+      normalizedUrl = `https://${normalizedUrl}`;
     }
 
-    if (source === "Document" && !documentFile) {
-      alert("Please upload a test case document.");
-      return;
-    }
-
-    if (!pom && !spec && !json) {
-      alert("Please select at least one output file.");
-      return;
-    }
-
-    setGenerated(true);
+    window.open(normalizedUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
     <section className="page">
-
       <div className="page-header">
         <h1>Automation</h1>
         <p>
-          Generate automation test scripts from your test cases.
+          Automate approved test cases using the AI Code Assist extension.
         </p>
       </div>
 
-      {/* AUTOMATION OPTIONS */}
-      <div className="automation-options-card">
-
-        {/* SOURCE */}
-        <div className="automation-option">
-          <label>Source</label>
-
-          <div className="segment-group">
-            <button
-              className={`segment-button ${
-                source === "Jira" ? "active" : ""
-              }`}
-              onClick={() => handleSourceChange("Jira")}
-            >
-              <ClipboardList size={17} />
-              Jira
-            </button>
-
-            <button
-              className={`segment-button ${
-                source === "Manual" ? "active" : ""
-              }`}
-              onClick={() => handleSourceChange("Manual")}
-            >
-              <FileText size={17} />
-              Manual
-            </button>
-
-            <button
-              className={`segment-button ${
-                source === "Document" ? "active" : ""
-              }`}
-              onClick={() => handleSourceChange("Document")}
-            >
-              <FileText size={17} />
-              Document
-            </button>
-          </div>
+      <div className="automation-info-card">
+        <div className="automation-info-icon">
+          <Code2 size={20} />
         </div>
 
-        {/* FRAMEWORK */}
-        <div className="automation-option">
-          <label>Framework</label>
-
-          <div className="select-wrapper">
-            <select
-              value={framework}
-              onChange={(e) => setFramework(e.target.value)}
-            >
-              {frameworks.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* LANGUAGE */}
-        <div className="automation-option">
-          <label>Language</label>
-
-          <div className="select-wrapper">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-            >
-              {languages.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* OUTPUT */}
-        <div className="automation-option">
-          <label>Output File</label>
-
-          <div className="automation-checkboxes">
-            <label className="checkbox-option">
-              <input
-                type="checkbox"
-                checked={pom}
-                onChange={(e) => setPom(e.target.checked)}
-              />
-              <span>POM File</span>
-            </label>
-
-            <label className="checkbox-option">
-              <input
-                type="checkbox"
-                checked={spec}
-                onChange={(e) => setSpec(e.target.checked)}
-              />
-              <span>Spec File</span>
-            </label>
-
-            <label className="checkbox-option">
-              <input
-                type="checkbox"
-                checked={json}
-                onChange={(e) => setJson(e.target.checked)}
-              />
-              <span>JSON File</span>
-            </label>
-          </div>
+        <div>
+          <h3>Approved Test Cases</h3>
+          <p>
+            Test cases approved in Dashboard are available here. Expand a
+            session and automate each test case individually.
+          </p>
         </div>
       </div>
 
-      {/* SOURCE-SPECIFIC CONTENT */}
-      <div className="source-input-area">
+      <div className="automation-sessions-panel">
+        <div className="automation-sessions-header">
+          <div>
+            <h2>Automation Sessions</h2>
+            <span>{sessions.length} approved sessions</span>
+          </div>
+        </div>
 
-        {/* JIRA */}
-        {source === "Jira" && (
-          <div className="source-panel">
-            <div className="source-panel-title">
-              Jira Test Case
-            </div>
+        <div className="automation-session-list">
+          {sessions.map((session) => {
+            const expanded = expandedSessions.includes(session.id);
 
-            <div className="jira-fetch-row">
-              <div className="source-field jira-id-field">
-                <label>Jira Issue ID</label>
+            return (
+              <div className="automation-session" key={session.id}>
+                <div className="automation-session-row">
+                  <button
+                    className="session-expand-button"
+                    onClick={() => toggleSession(session.id)}
+                    aria-label={`${expanded ? "Collapse" : "Expand"} ${session.session}`}
+                  >
+                    {expanded ? (
+                      <ChevronDown size={18} />
+                    ) : (
+                      <ChevronRight size={18} />
+                    )}
+                  </button>
 
-                <input
-                  type="text"
-                  value={jiraId}
-                  onChange={(e) => setJiraId(e.target.value)}
-                  placeholder="e.g. PROJ-123"
-                />
+                  <div className="automation-session-name">
+                    <strong>{session.session}</strong>
+                    <span>{session.testCases.length} test cases</span>
+                  </div>
+
+                  <div className="automation-session-submitted">
+                    {session.submitted}
+                  </div>
+
+                  <span className="status-badge approved">
+                    {session.status}
+                  </span>
+                </div>
+
+                {expanded && (
+                  <div className="automation-testcases">
+                    {session.testCases.map((testCase) => (
+                      <div
+                        className="automation-testcase-row"
+                        key={testCase.id}
+                      >
+                        <div className="automation-testcase-details">
+                          <span className="automation-testcase-id">
+                            {testCase.id}
+                          </span>
+                          <span className="automation-testcase-title">
+                            {testCase.title}
+                          </span>
+                        </div>
+
+                        <button
+                          className="automate-testcase-button"
+                          onClick={() => openAutomationModal(testCase)}
+                        >
+                          <Code2 size={15} />
+                          Automate
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {automationModalOpen && selectedTestCase && (
+        <div
+          className="automation-modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeAutomationModal();
+            }
+          }}
+        >
+          <div className="automation-modal">
+            <div className="automation-modal-header">
+              <div>
+                <h2>Automate Test Case</h2>
+                <p>
+                  {selectedTestCase.id} · {selectedTestCase.title}
+                </p>
               </div>
 
               <button
-                className="fetch-button"
-                onClick={fetchJiraTestCase}
+                className="automation-modal-close"
+                onClick={closeAutomationModal}
+                aria-label="Close"
               >
-                Fetch
+                <X size={19} />
               </button>
             </div>
 
-            {jiraFetched && (
-              <div className="story-details">
-
-                <div className="source-field">
-                  <label>Test Case Title</label>
-
-                  <input
-                    type="text"
-                    value={testCaseTitle}
-                    onChange={(e) =>
-                      setTestCaseTitle(e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="source-field">
-                  <label>Test Steps</label>
-
-                  <textarea
-                    value={testSteps}
-                    onChange={(e) =>
-                      setTestSteps(e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="source-field">
-                  <label>Additional Info</label>
-
-                  <textarea
-                    value={additionalInfo}
-                    onChange={(e) =>
-                      setAdditionalInfo(e.target.value)
-                    }
-                  />
-                </div>
-
+            <div className="automation-modal-body">
+              <div className="automation-selected-testcase">
+                <span>Selected Test Case</span>
+                <strong>
+                  {selectedTestCase.id} — {selectedTestCase.title}
+                </strong>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* MANUAL */}
-        {source === "Manual" && (
-          <div className="source-panel">
-
-            <div className="source-panel-title">
-              Test Case
-            </div>
-
-            <div className="story-details">
 
               <div className="source-field">
-                <label>Test Case Title</label>
-
+                <label>Website URL</label>
                 <input
-                  type="text"
-                  value={testCaseTitle}
-                  onChange={(e) =>
-                    setTestCaseTitle(e.target.value)
-                  }
-                  placeholder="Enter the test case title..."
+                  type="url"
+                  value={websiteUrl}
+                  onChange={(event) => setWebsiteUrl(event.target.value)}
+                  placeholder="https://example.com"
+                  autoFocus
                 />
               </div>
 
-              <div className="source-field">
-                <label>Test Steps</label>
-
-                <textarea
-                  value={testSteps}
-                  onChange={(e) =>
-                    setTestSteps(e.target.value)
-                  }
-                  placeholder="Enter the test steps..."
-                />
-              </div>
-
-              <div className="source-field">
-                <label>Additional Info</label>
-
-                <textarea
-                  value={additionalInfo}
-                  onChange={(e) =>
-                    setAdditionalInfo(e.target.value)
-                  }
-                  placeholder="Enter any additional information..."
-                />
-              </div>
-
-            </div>
-          </div>
-        )}
-
-        {/* DOCUMENT */}
-        {source === "Document" && (
-          <div className="source-panel">
-
-            <div className="source-panel-title">
-              Test Case Document
+              <p className="automation-modal-help">
+                The website will open in a new window. You can then use the
+                AI Code Assist extension to generate the POM and spec for this
+                test case.
+              </p>
             </div>
 
-            <label className="document-upload-box">
+            <div className="automation-modal-footer">
+              <button
+                className="automation-cancel-button"
+                onClick={closeAutomationModal}
+              >
+                Cancel
+              </button>
 
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.txt"
-                onChange={(e) => {
-                  setDocumentFile(
-                    e.target.files?.[0] ?? null
-                  );
-                  setGenerated(false);
-                }}
-              />
-
-              <FileText
-                size={34}
-                className="upload-icon"
-              />
-
-              <strong>
-                {documentFile
-                  ? documentFile.name
-                  : "Upload Test Case Document"}
-              </strong>
-
-              <span>
-                {documentFile
-                  ? "File selected successfully"
-                  : "Drag & drop your document here or click to browse"}
-              </span>
-
-              <small>
-                PDF, DOC, DOCX or TXT
-              </small>
-
-            </label>
+              <button
+                className="automation-open-button"
+                onClick={openWebsite}
+              >
+                <ExternalLink size={16} />
+                Open Website
+              </button>
+            </div>
           </div>
-        )}
-
-      </div>
-
-      {/* GENERATE AUTOMATION CODE */}
-      <button
-        className="generate-button"
-        onClick={generateAutomation}
-      >
-        <Code2 size={21} />
-        Generate Automation Code
-      </button>
-
-      {/* GENERATED AUTOMATION CODE */}
-      <div className="generated-section">
-
-        <label>Generated Automation Code</label>
-
-        <div className="output-box automation-output-box">
-
-          <Code2
-            className="document-icon"
-            size={42}
-          />
-
-          {!generated ? (
-            <>
-              <h3>
-                No automation code generated yet
-              </h3>
-
-              <p>
-                Complete the selected test case details and
-                click Generate Automation Code.
-              </p>
-            </>
-          ) : (
-            <>
-              <h3>
-                Automation code generated successfully
-              </h3>
-
-              <p>
-                {framework} · {language}
-              </p>
-
-              <p className="generated-details">
-                {pom ? "POM " : ""}
-                {spec ? "Spec " : ""}
-                {json ? "JSON" : ""}
-              </p>
-            </>
-          )}
-
         </div>
-      </div>
-
+      )}
     </section>
   );
 }
-
 
 export default App;
