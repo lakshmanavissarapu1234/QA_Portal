@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   FileText,
   Bot,
@@ -141,6 +141,11 @@ function App() {
 
 type SessionStatus = "Pending Review" | "Approved" | "Rejected";
 
+type DashboardTestCase = {
+  id: string;
+  title: string;
+};
+
 type Session = {
   id: number;
   session: string;
@@ -148,6 +153,7 @@ type Session = {
   submitted: string;
   assignedTo: string;
   status: SessionStatus;
+  testCases: DashboardTestCase[];
 };
 
 function DashboardPage() {
@@ -156,6 +162,7 @@ function DashboardPage() {
   >("my");
 
   const [openActionId, setOpenActionId] = useState<number | null>(null);
+  const [expandedSessionIds, setExpandedSessionIds] = useState<number[]>([]);
 
   // UI sample data for the Dashboard.
   // This will later be replaced by data returned from the backend/storage.
@@ -167,6 +174,11 @@ function DashboardPage() {
       submitted: "3 hours ago",
       assignedTo: "John",
       status: "Pending Review",
+      testCases: [
+        { id: "TC001", title: "Verify valid user login" },
+        { id: "TC002", title: "Verify login with invalid credentials" },
+        { id: "TC003", title: "Verify login with empty credentials" },
+      ],
     },
     {
       id: 2,
@@ -175,6 +187,10 @@ function DashboardPage() {
       submitted: "1 day ago",
       assignedTo: "Sarah",
       status: "Approved",
+      testCases: [
+        { id: "TC004", title: "Reset password with valid email" },
+        { id: "TC005", title: "Reset password with invalid email" },
+      ],
     },
     {
       id: 3,
@@ -183,8 +199,21 @@ function DashboardPage() {
       submitted: "1 week ago",
       assignedTo: "Mike",
       status: "Rejected",
+      testCases: [
+        { id: "TC006", title: "Register with valid details" },
+        { id: "TC007", title: "Register with existing email" },
+        { id: "TC008", title: "Register with missing required fields" },
+      ],
     },
   ]);
+
+  const toggleSessionExpansion = (sessionId: number) => {
+    setExpandedSessionIds((current) =>
+      current.includes(sessionId)
+        ? current.filter((id) => id !== sessionId)
+        : [...current, sessionId]
+    );
+  };
 
   const getSessionsForTab = () => {
     if (dashboardTab === "my") {
@@ -228,6 +257,7 @@ function DashboardPage() {
           onClick={() => {
             setDashboardTab("my");
             setOpenActionId(null);
+            setExpandedSessionIds([]);
           }}
         >
           My Sessions
@@ -240,6 +270,7 @@ function DashboardPage() {
           onClick={() => {
             setDashboardTab("assigned");
             setOpenActionId(null);
+            setExpandedSessionIds([]);
           }}
         >
           Assigned for Review
@@ -252,6 +283,7 @@ function DashboardPage() {
           onClick={() => {
             setDashboardTab("all");
             setOpenActionId(null);
+            setExpandedSessionIds([]);
           }}
         >
           All Sessions
@@ -301,90 +333,166 @@ function DashboardPage() {
               </thead>
 
               <tbody>
-                {visibleSessions.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <button
-                        className="session-name"
-                        onClick={() => handleAction("View", item)}
-                      >
-                        {item.session}
-                      </button>
-                    </td>
+                {visibleSessions.map((item) => {
+                  const expanded = expandedSessionIds.includes(item.id);
 
-                    <td>{item.createdBy}</td>
-
-                    <td className="submitted-time">{item.submitted}</td>
-
-                    <td>{item.assignedTo}</td>
-
-                    <td>
-                      <span
-                        className={`status-badge ${
-                          item.status === "Pending Review"
-                            ? "pending"
-                            : item.status === "Approved"
-                              ? "approved"
-                              : "rejected"
+                  return (
+                    <Fragment key={item.id}>
+                      <tr
+                        className={`session-main-row ${
+                          expanded ? "expanded" : ""
                         }`}
                       >
-                        {item.status}
-                      </span>
-                    </td>
-
-                    <td className="actions-cell">
-                      <button
-                        className="action-menu-button"
-                        aria-label={`Actions for ${item.session}`}
-                        onClick={() =>
-                          setOpenActionId(
-                            openActionId === item.id ? null : item.id
-                          )
-                        }
-                      >
-                        <MoreVertical size={18} />
-                      </button>
-
-                      {openActionId === item.id && (
-                        <div className="action-menu">
-                          <button onClick={() => handleAction("View", item)}>
-                            View
-                          </button>
-
-                          {item.status !== "Approved" && (
-                            <button onClick={() => handleAction("Assign", item)}>
-                              Assign
+                        <td>
+                          <div className="session-name-cell">
+                            <button
+                              className="session-expand-button dashboard-expand-button"
+                              onClick={() => toggleSessionExpansion(item.id)}
+                              aria-label={`${
+                                expanded ? "Collapse" : "Expand"
+                              } ${item.session}`}
+                              title={expanded ? "Collapse test cases" : "Show test cases"}
+                            >
+                              {expanded ? (
+                                <ChevronDown size={16} />
+                              ) : (
+                                <ChevronRight size={16} />
+                              )}
                             </button>
-                          )}
 
-                          {item.status === "Approved" && (
-                            <>
-                              <button
-                                onClick={() =>
-                                  handleAction("Push to Storage", item)
-                                }
-                              >
-                                Push to Storage
-                              </button>
-                              <button
-                                onClick={() => handleAction("Automate", item)}
-                              >
-                                Automate
-                              </button>
-                            </>
-                          )}
+                            <button
+                              className="session-name"
+                              onClick={() => toggleSessionExpansion(item.id)}
+                            >
+                              {item.session}
+                            </button>
+                          </div>
+                        </td>
 
-                          <button
-                            className="danger-action"
-                            onClick={() => handleAction("Delete", item)}
+                        <td>{item.createdBy}</td>
+
+                        <td className="submitted-time">{item.submitted}</td>
+
+                        <td>{item.assignedTo}</td>
+
+                        <td>
+                          <span
+                            className={`status-badge ${
+                              item.status === "Pending Review"
+                                ? "pending"
+                                : item.status === "Approved"
+                                  ? "approved"
+                                  : "rejected"
+                            }`}
                           >
-                            Delete
+                            {item.status}
+                          </span>
+                        </td>
+
+                        <td className="actions-cell">
+                          <button
+                            className="action-menu-button"
+                            aria-label={`Actions for ${item.session}`}
+                            onClick={() =>
+                              setOpenActionId(
+                                openActionId === item.id ? null : item.id
+                              )
+                            }
+                          >
+                            <MoreVertical size={18} />
                           </button>
-                        </div>
+
+                          {openActionId === item.id && (
+                            <div className="action-menu">
+                              <button onClick={() => handleAction("View", item)}>
+                                View
+                              </button>
+
+                              {item.status !== "Approved" && (
+                                <button
+                                  onClick={() => handleAction("Assign", item)}
+                                >
+                                  Assign
+                                </button>
+                              )}
+
+                              {item.status === "Approved" && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      handleAction("Push to Storage", item)
+                                    }
+                                  >
+                                    Push to Storage
+                                  </button>
+
+                                  <button
+                                    onClick={() =>
+                                      handleAction("Automate", item)
+                                    }
+                                  >
+                                    Automate
+                                  </button>
+                                </>
+                              )}
+
+                              <button
+                                className="danger-action"
+                                onClick={() => handleAction("Delete", item)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+
+                      {expanded && (
+                        <tr
+                          className="session-testcases-row"
+                          key={`${item.id}-details`}
+                        >
+                          <td colSpan={6}>
+                            <div className="session-testcases-container">
+                              <div className="session-testcases-header">
+                                <div>
+                                  <strong>Test Cases</strong>
+                                  <span>
+                                    {item.testCases.length}{" "}
+                                    {item.testCases.length === 1
+                                      ? "test case"
+                                      : "test cases"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="session-testcases-list">
+                                {item.testCases.map((testCase, index) => (
+                                  <div
+                                    className="session-testcase-item"
+                                    key={testCase.id}
+                                  >
+                                    <span className="session-testcase-number">
+                                      {String(index + 1).padStart(2, "0")}
+                                    </span>
+
+                                    <span className="session-testcase-id">
+                                      {testCase.id}
+                                    </span>
+
+                                    <span className="session-testcase-title">
+                                      {testCase.title}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
                       )}
-                    </td>
-                  </tr>
-                ))}
+                    </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
